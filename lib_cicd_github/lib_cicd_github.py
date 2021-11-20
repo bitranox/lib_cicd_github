@@ -464,7 +464,7 @@ def after_success(dry_run: bool = True) -> None:
 
         if do_upload_code_climate() and os.getenv("CC_TEST_REPORTER_ID"):
             if is_ci_runner_os_windows():
-                lib_log_utils.banner_warning('Code Climate Coverage: no working "codeclimate-test-reporter" for Windows available, Nov. 2021')
+                lib_log_utils.banner_warning('Code Climate: no working "codeclimate-test-reporter" for Windows available, Nov. 2021')
                 '''
                 os.environ["CODECLIMATE_REPO_TOKEN"] = os.getenv("CC_TEST_REPORTER_ID", "")
                 run(
