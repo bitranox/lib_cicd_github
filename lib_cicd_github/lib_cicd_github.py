@@ -1050,21 +1050,21 @@ def is_ci_runner_os_linux() -> bool:
     Examples:
 
     >>> # Setup
-    >>> save_travis_os_name = get_env_data('runner.os')
+    >>> save_travis_os_name = get_env_data('RUNNER_OS')
 
     >>> # runner.os == 'linux'
-    >>> set_env_data('runner.os', 'Linux')
+    >>> set_env_data('RUNNER_OS', 'Linux')
     >>> assert is_ci_runner_os_linux() == True
 
     >>> # TRAVIS_OS_NAME == 'windows'
-    >>> set_env_data('runner.os', 'Windows')
+    >>> set_env_data('RUNNER_OS', 'Windows')
     >>> assert is_ci_runner_os_linux() == False
 
     >>> # Teardown
-    >>> set_env_data('runner.os', save_travis_os_name)
+    >>> set_env_data('RUNNER_OS', save_travis_os_name)
 
     """
-    return get_env_data('runner.os').lower() == "linux"
+    return get_env_data('RUNNER_OS').lower() == "linux"
 
 
 def is_ci_runner_os_macos() -> bool:
@@ -1073,7 +1073,7 @@ def is_ci_runner_os_macos() -> bool:
 
     Parameter
     ---------
-    runner.os
+    RUNNER_OS
         from environment
 
     Examples:
@@ -1095,7 +1095,6 @@ def is_ci_runner_os_macos() -> bool:
 
     """
     return get_env_data('RUNNER_OS').lower() == "macos"
-
 
 
 def do_deploy() -> bool:
