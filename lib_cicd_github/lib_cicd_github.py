@@ -463,7 +463,7 @@ def after_success(dry_run: bool = True) -> None:
             lib_log_utils.banner_spam("codecov upload disabled")
 
         if do_upload_code_climate() and os.getenv("CC_TEST_REPORTER_ID"):
-            if is_ci_runner_os_windows():
+            if is_ci_runner_os_windows() or is_ci_runner_os_macos():
                 os.environ["CODECLIMATE_REPO_TOKEN"] = os.getenv("CC_TEST_REPORTER_ID", "")
                 run(
                     description="install codeclimate-test-reporter",
@@ -473,7 +473,7 @@ def after_success(dry_run: bool = True) -> None:
                     description="coverage upload to codeclimate",
                     command=" ".join([command_prefix, "codeclimate-test-reporter"]),
                 )
-            else:
+            elif is_ci_runner_os_linux():
                 run(
                     description="download test reporter",
                     command="curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter",
@@ -493,6 +493,8 @@ def after_success(dry_run: bool = True) -> None:
                         ]
                     ),
                 )
+            else:
+                lib_log_utils.banner_warning("Code Climate Coverage - unknown RUNNER_OS ")
         else:
             lib_log_utils.banner_spam("Code Climate Coverage is disabled, no CC_TEST_REPORTER_ID")
 
@@ -1048,6 +1050,37 @@ def is_ci_runner_os_linux() -> bool:
 
     """
     return get_env_data('runner.os').lower() == "linux"
+
+
+def is_ci_runner_os_macos() -> bool:
+    """
+    if the ci runner os is macos
+
+    Parameter
+    ---------
+    runner.os
+        from environment
+
+    Examples:
+
+    >>> # Setup
+    >>> save_travis_os_name = get_env_data('RUNNER_OS')
+
+    >>> # runner.os == 'linux'
+    >>> set_env_data('RUNNER_OS', 'Linux')
+    >>> assert is_ci_runner_os_macos() == False
+
+    >>> # TRAVIS_OS_NAME == 'windows'
+    >>> set_env_data('RUNNER_OS', 'macOS')
+    >>> assert is_ci_runner_os_macos() == True
+
+    >>> # Teardown
+    >>> set_env_data('RUNNER_OS', save_travis_os_name)
+
+
+    """
+    return get_env_data('RUNNER_OS').lower() == "macos"
+
 
 
 def do_deploy() -> bool:
