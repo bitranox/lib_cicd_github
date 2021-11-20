@@ -92,7 +92,7 @@ def run(
             tries = tries - 1
             # try 3 times, because sometimes connection or other errors on travis
             if tries:
-                lib_log_utils.banner_notice(
+                lib_log_utils.banner_spam(
                     f"Retry in {sleep} seconds: {description}\nCommand: {command_description}",
                     banner=False,
                 )
@@ -328,7 +328,7 @@ def script(dry_run: bool = True) -> None:
             command=" ".join([python_prefix, "-m flake8 --statistics --benchmark"]),
         )
     else:
-        lib_log_utils.banner_notice("flake8 tests disabled on this build")
+        lib_log_utils.banner_spam("flake8 tests disabled on this build")
 
     if do_mypy_tests():
         mypy_options = os.getenv("MYPY_OPTIONS", "")
@@ -337,20 +337,20 @@ def script(dry_run: bool = True) -> None:
             command=" ".join([python_prefix, "-m mypy -p", package_name, mypy_options]),
         )
     else:
-        lib_log_utils.banner_notice("mypy typecheck --strict disabled on this build")
+        lib_log_utils.banner_spam("mypy typecheck --strict disabled on this build")
 
     if do_pytest():
         if do_coverage():
             option_codecov = "".join(["--cov=", package_name])
         else:
-            lib_log_utils.banner_notice("coverage disabled")
+            lib_log_utils.banner_spam("coverage disabled")
             option_codecov = ""
         run(
             description="run pytest",
             command=" ".join([python_prefix, "-m pytest", option_codecov]),
         )
     else:
-        lib_log_utils.banner_notice("pytest disabled")
+        lib_log_utils.banner_spam("pytest disabled")
 
     # run(description='setup.py test', command=' '.join([python_prefix, './setup.py test']))
     # run(description='pip install, option test', command=' '.join([pip_prefix, 'install', repository, '--install-option test']))
@@ -388,7 +388,7 @@ def script(dry_run: bool = True) -> None:
             ),
         )
     else:
-        lib_log_utils.banner_notice("rebuild doc file is disabled on this build")
+        lib_log_utils.banner_spam("rebuild doc file is disabled on this build")
 
     if do_deploy_sdist() or do_build_test():
         run(
@@ -396,7 +396,7 @@ def script(dry_run: bool = True) -> None:
             command=" ".join([python_prefix, "setup.py sdist"]),
         )
     else:
-        lib_log_utils.banner_notice("create source distribution is disabled on this build")
+        lib_log_utils.banner_spam("create source distribution is disabled on this build")
 
     if do_deploy_wheel() or do_build_test():
         run(
@@ -404,7 +404,7 @@ def script(dry_run: bool = True) -> None:
             command=" ".join([python_prefix, "setup.py bdist_wheel"]),
         )
     else:
-        lib_log_utils.banner_notice("create wheel distribution is disabled on this build")
+        lib_log_utils.banner_spam("create wheel distribution is disabled on this build")
 
     if do_deploy_sdist() or do_deploy_wheel() or do_build_test():
         run(
@@ -460,9 +460,10 @@ def after_success(dry_run: bool = True) -> None:
                 command=" ".join([command_prefix, "codecov"]),
             )
         else:
-            lib_log_utils.banner_notice("codecov upload disabled")
+            lib_log_utils.banner_spam("codecov upload disabled")
 
         if do_upload_code_climate() and os.getenv("CC_TEST_REPORTER_ID"):
+            lib_log_utils.banner_spam(f"runner.os: {get_env_data('runner.os')}")
             if is_ci_runner_os_windows():
                 os.environ["CODECLIMATE_REPO_TOKEN"] = os.getenv("CC_TEST_REPORTER_ID", "")
                 run(
@@ -494,7 +495,7 @@ def after_success(dry_run: bool = True) -> None:
                     ),
                 )
         else:
-            lib_log_utils.banner_notice("Code Climate Coverage is disabled, no CC_TEST_REPORTER_ID")
+            lib_log_utils.banner_spam("Code Climate Coverage is disabled, no CC_TEST_REPORTER_ID")
 
 
 # deploy{{{
@@ -548,7 +549,7 @@ def deploy(dry_run: bool = True) -> None:
                 show_command=False,
             )  # pragma: no cover
     else:
-        lib_log_utils.banner_notice("pypi deploy is disabled on this build")
+        lib_log_utils.banner_spam("pypi deploy is disabled on this build")
 
 
 def get_pip_prefix() -> str:
