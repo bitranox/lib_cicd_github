@@ -463,7 +463,6 @@ def after_success(dry_run: bool = True) -> None:
             lib_log_utils.banner_spam("codecov upload disabled")
 
         if do_upload_code_climate() and os.getenv("CC_TEST_REPORTER_ID"):
-            lib_log_utils.banner_spam(f"RUNNER_OS: {get_env_data('RUNNER_OS')}")
             if is_ci_runner_os_windows():
                 os.environ["CODECLIMATE_REPO_TOKEN"] = os.getenv("CC_TEST_REPORTER_ID", "")
                 run(
@@ -1004,22 +1003,22 @@ def is_ci_runner_os_windows() -> bool:
     Examples:
 
     >>> # Setup
-    >>> save_travis_os_name = get_env_data('runner.os')
+    >>> save_travis_os_name = get_env_data('RUNNER_OS')
 
     >>> # runner.os == 'linux'
-    >>> set_env_data('runner.os', 'Linux')
+    >>> set_env_data('RUNNER_OS', 'Linux')
     >>> assert is_ci_runner_os_windows() == False
 
     >>> # TRAVIS_OS_NAME == 'windows'
-    >>> set_env_data('runner.os', 'Windows')
+    >>> set_env_data('RUNNER_OS', 'Windows')
     >>> assert is_ci_runner_os_windows() == True
 
     >>> # Teardown
-    >>> set_env_data('runner.os', save_travis_os_name)
+    >>> set_env_data('RUNNER_OS', save_travis_os_name)
 
 
     """
-    return get_env_data('runner.os').lower() == "windows"
+    return get_env_data('RUNNER_OS').lower() == "windows"
 
 
 def is_ci_runner_os_linux() -> bool:
