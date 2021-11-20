@@ -463,7 +463,7 @@ def after_success(dry_run: bool = True) -> None:
             lib_log_utils.banner_spam("codecov upload disabled")
 
         if do_upload_code_climate() and os.getenv("CC_TEST_REPORTER_ID"):
-            lib_log_utils.banner_spam(f"runner.os: {get_env_data('runner.os')}")
+            lib_log_utils.banner_spam(f"RUNNER_OS: {get_env_data('RUNNER_OS')}")
             if is_ci_runner_os_windows():
                 os.environ["CODECLIMATE_REPO_TOKEN"] = os.getenv("CC_TEST_REPORTER_ID", "")
                 run(
