@@ -463,7 +463,7 @@ def after_success(dry_run: bool = True) -> None:
             lib_log_utils.banner_spam("codecov upload disabled")
 
         if do_upload_code_climate() and os.getenv("CC_TEST_REPORTER_ID"):
-            if is_ci_runner_os_windows() or is_ci_runner_os_macos():
+            if is_ci_runner_os_windows():
                 os.environ["CODECLIMATE_REPO_TOKEN"] = os.getenv("CC_TEST_REPORTER_ID", "")
                 run(
                     description="install codeclimate-test-reporter",
@@ -473,7 +473,7 @@ def after_success(dry_run: bool = True) -> None:
                     description="coverage upload to codeclimate",
                     command=" ".join([command_prefix, "codeclimate-test-reporter"]),
                 )
-            elif is_ci_runner_os_linux():
+            elif is_ci_runner_os_macos():
                 run(
                     description="download test reporter",
                     command="curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter",
@@ -483,15 +483,21 @@ def after_success(dry_run: bool = True) -> None:
                     banner=False,
                     command="chmod +x ./cc-test-reporter",
                 )
+
+            elif is_ci_runner_os_linux():
+                run(
+                    description="download test reporter",
+                    command="curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64 > ./cc-test-reporter",
+                )
+                run(
+                    description="test reporter set permissions",
+                    banner=False,
+                    command="chmod +x ./cc-test-reporter",
+                )
                 travis_test_result = os.getenv("TRAVIS_TEST_RESULT", "")
                 run(
                     description="coverage upload to codeclimate",
-                    command=" ".join(
-                        [
-                            "./cc-test-reporter after-build --exit-code",
-                            travis_test_result,
-                        ]
-                    ),
+                    command=f'./cc-test-reporter after-build --exit-code {travis_test_result}',
                 )
             else:
                 lib_log_utils.banner_warning("Code Climate Coverage - unknown RUNNER_OS ")
