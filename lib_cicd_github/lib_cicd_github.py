@@ -464,6 +464,8 @@ def after_success(dry_run: bool = True) -> None:
 
         if do_upload_code_climate() and os.getenv("CC_TEST_REPORTER_ID"):
             if is_ci_runner_os_windows():
+                lib_log_utils.banner_warning('Code Climate Coverage: no working "codeclimate-test-reporter" for Windows available, Nov. 2021')
+                '''
                 os.environ["CODECLIMATE_REPO_TOKEN"] = os.getenv("CC_TEST_REPORTER_ID", "")
                 run(
                     description="install codeclimate-test-reporter",
@@ -473,36 +475,43 @@ def after_success(dry_run: bool = True) -> None:
                     description="coverage upload to codeclimate",
                     command=" ".join([command_prefix, "codeclimate-test-reporter"]),
                 )
-            elif is_ci_runner_os_macos():
-                run(
-                    description="download test reporter",
-                    command="curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter",
-                )
-                run(
-                    description="test reporter set permissions",
-                    banner=False,
-                    command="chmod +x ./cc-test-reporter",
-                )
-
-            elif is_ci_runner_os_linux():
-                run(
-                    description="download test reporter",
-                    command="curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64 > ./cc-test-reporter",
-                )
-                run(
-                    description="test reporter set permissions",
-                    banner=False,
-                    command="chmod +x ./cc-test-reporter",
-                )
-                travis_test_result = os.getenv("TRAVIS_TEST_RESULT", "")
-                run(
-                    description="coverage upload to codeclimate",
-                    command=f'./cc-test-reporter after-build --exit-code {travis_test_result}',
-                )
+                '''
+            elif is_ci_runner_os_macos() or is_ci_runner_os_linux():
+                download_code_climate_test_reporter()
+                upload_code_climate_test_report_on_linux_or_macos()
             else:
                 lib_log_utils.banner_warning("Code Climate Coverage - unknown RUNNER_OS ")
         else:
             lib_log_utils.banner_spam("Code Climate Coverage is disabled, no CC_TEST_REPORTER_ID")
+
+
+def download_code_climate_test_reporter():
+    download_link = ''
+    if is_ci_runner_os_macos():
+        download_link = 'https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64'
+    elif is_ci_runner_os_linux():
+        download_link = 'https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64'
+    else:
+        lib_log_utils.banner_warning("Code Climate Coverage - unknown RUNNER_OS ")
+
+    run(
+        description='download code climate test reporter',
+        command=f'curl -L {download_link} > ./cc-test-reporter',
+    )
+    run(
+        description='set permissions for code climate test reporter',
+        banner=False,
+        command='chmod +x ./cc-test-reporter',
+    )
+
+
+def upload_code_climate_test_report_on_linux_or_macos():
+    # Test Exit Code is always zero here, since the previous step on github actions completed without error
+    test_exit_code = 0
+    run(
+        description="code climate test report upload",
+        command=f'./cc-test-reporter after-build --exit-code {test_exit_code}',
+    )
 
 
 # deploy{{{
