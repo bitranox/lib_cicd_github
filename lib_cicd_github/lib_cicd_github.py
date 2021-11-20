@@ -10,7 +10,6 @@ from typing import List
 import lib_log_utils
 import cli_exit_tools
 
-
 # run{{{
 def run(
     description: str,
@@ -122,11 +121,7 @@ def get_branch() -> str:
 
     Parameter
     ---------
-    TRAVIS_BRANCH
-        from environment
-    TRAVIS_PULL_REQUEST_BRANCH
-        from environment
-    TRAVIS_TAG
+    GITHUB_REF
         from environment
 
     Result
@@ -139,11 +134,12 @@ def get_branch() -> str:
     none
 
 
-    ============  =============  ==========================  ==========  =======================================================
-    Build         TRAVIS_BRANCH  TRAVIS_PULL_REQUEST_BRANCH  TRAVIS_TAG  Notice
-    ============  =============  ==========================  ==========  =======================================================
-    Custom Build  <branch>       ---                         ---         return <branch> from TRAVIS_BRANCH
-    Push          <branch>       ---                         ---         return <branch> from TRAVIS_BRANCH
+    ============  =================================  ==========================  ==========  =======================================================
+    Build         GITHUB_REF                         TRAVIS_PULL_REQUEST_BRANCH  TRAVIS_TAG  Notice
+    ============  =================================  ==========================  ==========  =======================================================
+    Push          refs/heads/<branch>                ---                         ---         return <branch> from GITHUB_REF
+
+    Custom Build  <branch>                           ---                         ---         return <branch> from TRAVIS_BRANCH
     Pull Request  <master>       <branch>                    ---         return <branch> from TRAVIS_PULL_REQUEST_BRANCH
     Tagged        <tag>          ---                         <tag>       return 'master'
     ============  =============  ==========================  ==========  =======================================================
@@ -161,15 +157,22 @@ def get_branch() -> str:
     TRAVIS_TAG:
         If the current build is for a git tag, this variable is set to the tag’s name, otherwise it is empty ("").
 
+    >>> # Setup
+    >>> github_ref_backup = get_env_data('GITHUB_REF')
+
+    >>> # test Master
+    >>> set_env_data('GITHUB_REF', 'refs/heads/development')
+    >>> assert get_branch() == 'development'
+
+    >>> # Teardown
+    >>> set_env_data('GITHUB_REF', github_ref_backup)
+
     """
     # get_branch}}}
 
-    if "TRAVIS_TAG" in os.environ and os.environ["TRAVIS_TAG"]:
-        branch = "master"
-    elif "TRAVIS_PULL_REQUEST_BRANCH" in os.environ and os.environ["TRAVIS_PULL_REQUEST_BRANCH"]:
-        branch = os.environ["TRAVIS_PULL_REQUEST_BRANCH"]
-    elif "TRAVIS_BRANCH" in os.environ and os.environ["TRAVIS_BRANCH"]:
-        branch = os.environ["TRAVIS_BRANCH"]
+    github_ref = get_env_data('GITHUB_REF')
+    if github_ref:
+        branch = github_ref.split('/')[-1]
     else:
         branch = "master"
     return branch
@@ -1198,6 +1201,30 @@ def do_deploy() -> bool:
         return True
     else:
         return False
+
+
+def get_env_data(env_variable: str) -> str:
+    """
+    >>> # Setup
+    >>> save_mypy_path = get_env_data('MYPYPATH')
+
+    >>> # Test
+    >>> set_env_data('MYPYPATH', 'some_test')
+    >>> assert get_env_data('MYPYPATH') == 'some_test'
+
+    >>> # Teardown
+    >>> set_env_data('MYPYPATH', save_mypy_path)
+
+    """
+    if env_variable in os.environ:
+        env_data = os.environ[env_variable]
+    else:
+        env_data = ''
+    return env_data
+
+
+def set_env_data(env_variable: str, env_str: str) -> None:
+    os.environ[env_variable] = env_str
 
 
 if __name__ == "__main__":
