@@ -148,52 +148,51 @@ def get_branch() -> str:
     ==============  ===================  ===================  ===================  ===================
 
     >>> # Setup
-    >>> github_ref_backup = get_env_data('github.ref')
-    >>> github_head_ref_backup = get_env_data('github.head_ref')
-    >>> github_event_name_backup = get_env_data('github.event_name')
+    >>> github_ref_backup = get_env_data('GITHUB_REF')
+    >>> github_head_ref_backup = get_env_data('GITHUB_HEAD_REF')
+    >>> github_event_name_backup = get_env_data('GITHUB_EVENT_NAME')
 
     >>> # test Push
-    >>> set_env_data('github.ref', 'refs/heads/development')
-    >>> set_env_data('github.head_ref', '')
-    >>> set_env_data('github.event_name', 'push')
+    >>> set_env_data('GITHUB_REF', 'refs/heads/development')
+    >>> set_env_data('GITHUB_HEAD_REF', '')
+    >>> set_env_data('GITHUB_EVENT_NAME', 'push')
     >>> assert get_branch() == 'development'
 
     >>> # test Push without github.ref
-    >>> set_env_data('github.ref', '')
-    >>> set_env_data('github.head_ref', '')
-    >>> set_env_data('github.event_name', 'push')
+    >>> set_env_data('GITHUB_REF', '')
+    >>> set_env_data('GITHUB_HEAD_REF', '')
+    >>> set_env_data('GITHUB_EVENT_NAME', 'push')
     >>> assert get_branch() == 'unknown branch, event=push'
 
     >>> # test PR
-    >>> set_env_data('github.ref', 'refs/pull/xx/merge')
-    >>> set_env_data('github.head_ref', 'master')
-    >>> set_env_data('github.event_name', 'pull_request')
+    >>> set_env_data('GITHUB_REF', 'refs/pull/xx/merge')
+    >>> set_env_data('GITHUB_HEAD_REF', 'master')
+    >>> set_env_data('GITHUB_EVENT_NAME', 'pull_request')
     >>> assert get_branch() == 'master'
 
     >>> # test Publish
-    >>> set_env_data('github.ref', 'refs/tags/v1.1.15')
-    >>> set_env_data('github.head_ref', '')
-    >>> set_env_data('github.event_name', 'release')
+    >>> set_env_data('GITHUB_REF', 'refs/tags/v1.1.15')
+    >>> set_env_data('GITHUB_HEAD_REF', '')
+    >>> set_env_data('GITHUB_EVENT_NAME', 'release')
     >>> assert get_branch() == 'release'
 
     >>> # test unknown event_name
-    >>> set_env_data('github.ref', '')
-    >>> set_env_data('github.head_ref', '')
-    >>> set_env_data('github.event_name', 'unknown_event')
+    >>> set_env_data('GITHUB_REF', '')
+    >>> set_env_data('GITHUB_HEAD_REF', '')
+    >>> set_env_data('GITHUB_EVENT_NAME', 'unknown_event')
     >>> assert get_branch() == 'unknown branch, event=unknown_event'
 
     >>> # Teardown
-    >>> set_env_data('github.ref', github_ref_backup)
-    >>> set_env_data('github.head_ref', github_head_ref_backup)
-    >>> set_env_data('github.event_name', github_event_name_backup)
+    >>> set_env_data('GITHUB_REF', github_ref_backup)
+    >>> set_env_data('GITHUB_HEAD_REF', github_head_ref_backup)
+    >>> set_env_data('GITHUB_EVENT_NAME', github_event_name_backup)
 
     """
     # get_branch}}}
 
-    github_ref = get_env_data('github.ref')
-    github_head_ref = get_env_data('github.head_ref')
-    github_event_name = get_env_data('github.event_name')
-    branch = "unknown"
+    github_ref = get_env_data('GITHUB_REF')
+    github_head_ref = get_env_data('GITHUB_HEAD_REF')
+    github_event_name = get_env_data('GITHUB_EVENT_NAME')
 
     if github_event_name == 'pull_request':
         branch = github_head_ref
