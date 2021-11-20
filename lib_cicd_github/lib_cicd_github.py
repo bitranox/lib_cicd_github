@@ -10,6 +10,7 @@ from typing import List
 import lib_log_utils
 import cli_exit_tools
 
+
 # run{{{
 def run(
     description: str,
@@ -116,12 +117,14 @@ def run(
 # get_branch{{{
 def get_branch() -> str:
     """
-    Return the branch to work on
+    Returns the branch to work on :
+        <branch>    for push, pull requests, merge
+        'release'   for tagged releases
 
 
     Parameter
     ---------
-    GITHUB_REF
+    github.ref, github.head_ref, github.event_name, github.job
         from environment
 
     Result
@@ -134,47 +137,75 @@ def get_branch() -> str:
     none
 
 
-    ============  =================================  ==========================  ==========  =======================================================
-    Build         GITHUB_REF                         TRAVIS_PULL_REQUEST_BRANCH  TRAVIS_TAG  Notice
-    ============  =================================  ==========================  ==========  =======================================================
-    Push          refs/heads/<branch>                ---                         ---         return <branch> from GITHUB_REF
-
-    Custom Build  <branch>                           ---                         ---         return <branch> from TRAVIS_BRANCH
-    Pull Request  <master>       <branch>                    ---         return <branch> from TRAVIS_PULL_REQUEST_BRANCH
-    Tagged        <tag>          ---                         <tag>       return 'master'
-    ============  =============  ==========================  ==========  =======================================================
-
-    TRAVIS_BRANCH:
-        for push builds, or builds not triggered by a pull request, this is the name of the branch.
-        for builds triggered by a pull request this is the name of the branch targeted by the pull request.
-        for builds triggered by a tag, this is the same as the name of the tag (TRAVIS_TAG).
-        Note that for tags, git does not store the branch from which a commit was tagged. (so we use always master in that case)
-
-    TRAVIS_PULL_REQUEST_BRANCH:
-        if the current job is a pull request, the name of the branch from which the PR originated.
-        if the current job is a push build, this variable is empty ("").
-
-    TRAVIS_TAG:
-        If the current build is for a git tag, this variable is set to the tag’s name, otherwise it is empty ("").
+    ==============  ===================  ===================  ===================  ===================
+    Build           github.ref           github.head_ref      github.event_name    github.job
+    ==============  ===================  ===================  ===================  ===================
+    Push            refs/heads/<branch>  ---                  push                 build
+    Custom Build    refs/heads/<branch>  ---                  push                 build
+    Pull Request    refs/pull/xx/merge   <branch>             pull_request         build
+    Merge           refs/heads/<branch>  ---                  push                 build
+    Publish Tagged  refs/tags/<tag>      ---                  release              build
+    ==============  ===================  ===================  ===================  ===================
 
     >>> # Setup
-    >>> github_ref_backup = get_env_data('GITHUB_REF')
+    >>> github_ref_backup = get_env_data('github.ref')
+    >>> github_head_ref_backup = get_env_data('github.head_ref')
+    >>> github_event_name_backup = get_env_data('github.event_name')
 
-    >>> # test Master
-    >>> set_env_data('GITHUB_REF', 'refs/heads/development')
+    >>> # test Push
+    >>> set_env_data('github.ref', 'refs/heads/development')
+    >>> set_env_data('github.head_ref', '')
+    >>> set_env_data('github.event_name', 'push')
     >>> assert get_branch() == 'development'
 
+    >>> # test Push without github.ref
+    >>> set_env_data('github.ref', '')
+    >>> set_env_data('github.head_ref', '')
+    >>> set_env_data('github.event_name', 'push')
+    >>> assert get_branch() == 'unknown branch, event=push'
+
+    >>> # test PR
+    >>> set_env_data('github.ref', 'refs/pull/xx/merge')
+    >>> set_env_data('github.head_ref', 'master')
+    >>> set_env_data('github.event_name', 'pull_request')
+    >>> assert get_branch() == 'master'
+
+    >>> # test Publish
+    >>> set_env_data('github.ref', 'refs/tags/v1.1.15')
+    >>> set_env_data('github.head_ref', '')
+    >>> set_env_data('github.event_name', 'release')
+    >>> assert get_branch() == 'release'
+
+    >>> # test unknown event_name
+    >>> set_env_data('github.ref', '')
+    >>> set_env_data('github.head_ref', '')
+    >>> set_env_data('github.event_name', 'unknown_event')
+    >>> assert get_branch() == 'unknown branch, event=unknown_event'
+
     >>> # Teardown
-    >>> set_env_data('GITHUB_REF', github_ref_backup)
+    >>> set_env_data('github.ref', github_ref_backup)
+    >>> set_env_data('github.head_ref', github_head_ref_backup)
+    >>> set_env_data('github.event_name', github_event_name_backup)
 
     """
     # get_branch}}}
 
-    github_ref = get_env_data('GITHUB_REF')
-    if github_ref:
-        branch = github_ref.split('/')[-1]
+    github_ref = get_env_data('github.ref')
+    github_head_ref = get_env_data('github.head_ref')
+    github_event_name = get_env_data('github.event_name')
+    branch = "unknown"
+
+    if github_event_name == 'pull_request':
+        branch = github_head_ref
+    elif github_event_name == 'release':
+        branch = 'release'
+    elif github_event_name == 'push':
+        if github_ref:
+            branch = github_ref.split('/')[-1]
+        else:
+            branch = f'unknown branch, event={github_event_name}'
     else:
-        branch = "master"
+        branch = f'unknown branch, event={github_event_name}'
     return branch
 
 
@@ -193,7 +224,7 @@ def install(dry_run: bool = True) -> None:
     Examples
     --------
 
-    >>> if os.getenv('TRAVIS'):
+    >>> if is_github_actions_active():
     ...     install(dry_run=True)
 
     """
@@ -214,18 +245,13 @@ def install(dry_run: bool = True) -> None:
         command=" ".join([pip_prefix, "install --upgrade readme_renderer"]),
     )
 
-    if is_pypy3() and os_is_linux():
+    if is_pypy3() and is_ci_runner_os_linux():
         # for pypy3 install rust compiler on linux to compile cryptography
         run(
             description="install rust compiler for twine",
             command="curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y",
         )
         os.environ["PATH"] = ":".join([os.getenv("PATH", ""), str(pathlib.Path.home() / ".cargo/bin")])
-
-    if is_arch_s390x() or is_arch_ppc64le():
-        # for s390 and ppc64le do not install rust compiler, and skip rust build -
-        # because it did not work 2021-02-15, error on compiling cryptography
-        os.environ["CRYPTOGRAPHY_DONT_BUILD_RUST"] = "1"
 
     run(
         description="install twine",
@@ -445,7 +471,7 @@ def after_success(dry_run: bool = True) -> None:
             lib_log_utils.banner_notice("codecov upload disabled")
 
         if do_upload_code_climate() and os.getenv("CC_TEST_REPORTER_ID"):
-            if os_is_windows():
+            if is_ci_runner_os_windows():
                 os.environ["CODECLIMATE_REPO_TOKEN"] = os.getenv("CC_TEST_REPORTER_ID", "")
                 run(
                     description="install codeclimate-test-reporter",
@@ -768,56 +794,47 @@ def do_build_docs() -> bool:
     Examples:
 
     >>> # Setup
-    >>> save_build_docs = os.getenv('BUILD_DOCS')
-    >>> save_rst_include_source = os.getenv('RST_INCLUDE_SOURCE')
-    >>> save_rst_include_target = os.getenv('RST_INCLUDE_TARGET')
+    >>> save_build_docs = get_env_data('BUILD_DOCS')
+    >>> save_rst_include_source = get_env_data('RST_INCLUDE_SOURCE')
+    >>> save_rst_include_target = get_env_data('RST_INCLUDE_TARGET')
 
     >>> # BUILD_DOCS != 'true'
-    >>> os.environ['BUILD_DOCS'] = 'false'
-    >>> os.unsetenv('RST_INCLUDE_SOURCE')
-    >>> os.unsetenv('RST_INCLUDE_TARGET')
-    >>> assert not do_build_docs()
+    >>> set_env_data('BUILD_DOCS', 'false')
+    >>> set_env_data('RST_INCLUDE_SOURCE', '')
+    >>> set_env_data('RST_INCLUDE_TARGET', '')
+    >>> assert do_build_docs() == False
 
     >>> # BUILD_DOCS == 'true', no source, no target
-    >>> os.environ['BUILD_DOCS'] = 'True'
-    >>> # no real test here, we cant set environ in travis
-    >>> assert do_build_docs() is not None
+    >>> set_env_data('BUILD_DOCS', 'true')
+    >>> set_env_data('RST_INCLUDE_SOURCE', '')
+    >>> set_env_data('RST_INCLUDE_TARGET', '')
+    >>> assert do_build_docs() == False
 
     >>> # BUILD_DOCS == 'true', no source
-    >>> os.environ['RST_INCLUDE_TARGET'] = 'some_target_file'
-    >>> # no real test here, we cant set environ in travis
-    >>> assert do_build_docs() is not None
+    >>> set_env_data('BUILD_DOCS', 'true')
+    >>> set_env_data('RST_INCLUDE_SOURCE', '')
+    >>> set_env_data('RST_INCLUDE_TARGET', 'some_target')
+    >>> assert do_build_docs() == False
 
     >>> # BUILD_DOCS == 'true', source and target
-    >>> os.environ['RST_INCLUDE_SOURCE'] = 'some_source_file'
-    >>> # no real test here, we cant set environ in travis
-    >>> assert do_build_docs() is not None
+    >>> set_env_data('BUILD_DOCS', 'true')
+    >>> set_env_data('RST_INCLUDE_SOURCE', 'some_source')
+    >>> set_env_data('RST_INCLUDE_TARGET', 'some_target')
+    >>> assert do_build_docs() == True
 
     >>> # Teardown
-    >>> if save_build_docs is None:
-    ...     os.unsetenv('BUILD_DOCS')
-    ... else:
-    ...     os.environ['BUILD_DOCS'] = save_build_docs
-
-    >>> if save_rst_include_source is None:
-    ...     os.unsetenv('RST_INCLUDE_SOURCE')
-    ... else:
-    ...     os.environ['RST_INCLUDE_SOURCE'] = save_rst_include_source
-
-    >>> if save_rst_include_target is None:
-    ...     os.unsetenv('RST_INCLUDE_TARGET')
-    ... else:
-    ...     os.environ['RST_INCLUDE_TARGET'] = save_rst_include_target
-
+    >>> set_env_data('BUILD_DOCS', save_build_docs)
+    >>> set_env_data('RST_INCLUDE_SOURCE', save_rst_include_source)
+    >>> set_env_data('RST_INCLUDE_TARGET', save_rst_include_target)
 
     """
-    if os.getenv("BUILD_DOCS", "").lower() != "true":
+    if get_env_data("BUILD_DOCS").lower() != "true":
         return False
 
-    if not os.getenv("RST_INCLUDE_SOURCE"):
+    if not get_env_data("RST_INCLUDE_SOURCE"):
         return False
 
-    if not os.getenv("RST_INCLUDE_TARGET"):
+    if not get_env_data("RST_INCLUDE_TARGET"):
         return False
     else:
         return True
@@ -836,28 +853,21 @@ def do_deploy_sdist() -> bool:
     Examples:
 
     >>> # Setup
-    >>> save_deploy_sdist = os.getenv('DEPLOY_SDIST')
+    >>> save_deploy_sdist = get_env_data('DEPLOY_SDIST')
 
-    >>> # DEPLOY_WHEEL != 'true'
+    >>> # DEPLOY_SDIST != 'true'
     >>> os.environ['DEPLOY_SDIST'] = 'false'
-    >>> assert not do_deploy_sdist()
+    >>> assert False == do_deploy_sdist()
 
-    >>> # DO_FLAKE8_TESTS == 'true'
+    >>> # DEPLOY_SDIST == 'true'
     >>> os.environ['DEPLOY_SDIST'] = 'True'
-    >>> assert do_deploy_sdist()
+    >>> assert True == do_deploy_sdist()
 
     >>> # Teardown
-    >>> if save_deploy_sdist is None:
-    ...     os.unsetenv('DEPLOY_SDIST')
-    ... else:
-    ...     os.environ['DEPLOY_SDIST'] = save_deploy_sdist
+    >>> set_env_data('DEPLOY_SDIST', save_deploy_sdist)
 
     """
-
-    if os.getenv("DEPLOY_SDIST", "").lower() == "true":
-        return True
-    else:
-        return False
+    return get_env_data("DEPLOY_SDIST").lower() == "true"
 
 
 def do_deploy_wheel() -> bool:
@@ -872,28 +882,21 @@ def do_deploy_wheel() -> bool:
     Examples:
 
     >>> # Setup
-    >>> save_deploy_wheel = os.getenv('DEPLOY_WHEEL')
+    >>> save_deploy_wheel = get_env_data('DEPLOY_WHEEL')
 
     >>> # DEPLOY_WHEEL != 'true'
     >>> os.environ['DEPLOY_WHEEL'] = 'false'
     >>> assert not do_deploy_wheel()
 
-    >>> # DO_FLAKE8_TESTS == 'true'
+    >>> # DEPLOY_WHEEL == 'true'
     >>> os.environ['DEPLOY_WHEEL'] = 'True'
     >>> assert do_deploy_wheel()
 
     >>> # Teardown
-    >>> if save_deploy_wheel is None:
-    ...     os.unsetenv('DEPLOY_WHEEL')
-    ... else:
-    ...     os.environ['DEPLOY_WHEEL'] = save_deploy_wheel
+    >>> set_env_data('DEPLOY_WHEEL', save_deploy_wheel)
 
     """
-
-    if os.getenv("DEPLOY_WHEEL", "").lower() == "true":
-        return True
-    else:
-        return False
+    return get_env_data("DEPLOY_WHEEL").lower() == "true"
 
 
 def do_flake8_tests() -> bool:
@@ -1002,148 +1005,69 @@ def is_pypy3() -> bool:
         return False
 
 
-def is_arch_s390x() -> bool:
+def is_ci_runner_os_windows() -> bool:
     """
-    if it is a travis s390x cpu architecture
+    if the ci runner os is windows
+
     Parameter
     ---------
-    TRAVIS_CPU_ARCH
+    runner.os
         from environment
 
     Examples:
 
     >>> # Setup
-    >>> save_cpu_arch = os.getenv('TRAVIS_CPU_ARCH')
+    >>> save_travis_os_name = get_env_data('runner.os')
 
-    >>> # Test
-    >>> os.environ['TRAVIS_CPU_ARCH'] = 's390x'
-    >>> assert is_arch_s390x()
-
-    >>> os.environ['TRAVIS_CPU_ARCH'] = 'amd64'
-    >>> assert not is_arch_s390x()
-
-    >>> # Teardown
-    >>> if save_cpu_arch is None:
-    ...     os.unsetenv('TRAVIS_CPU_ARCH')
-    ... else:
-    ...     os.environ['TRAVIS_CPU_ARCH'] = save_cpu_arch
-
-    """
-    if os.getenv("TRAVIS_CPU_ARCH", "").lower() == "s390x":
-        return True
-    else:
-        return False
-
-
-def is_arch_ppc64le() -> bool:
-    """
-    if it is a travis ppc64le cpu architecture
-    Parameter
-    ---------
-    TRAVIS_CPU_ARCH
-        from environment
-
-    Examples:
-
-    >>> # Setup
-    >>> save_cpu_arch = os.getenv('TRAVIS_CPU_ARCH')
-
-    >>> # Test
-    >>> os.environ['TRAVIS_CPU_ARCH'] = 'ppc64le'
-    >>> assert is_arch_ppc64le()
-
-    >>> os.environ['TRAVIS_CPU_ARCH'] = 'amd64'
-    >>> assert not is_arch_ppc64le()
-
-    >>> # Teardown
-    >>> if save_cpu_arch is None:
-    ...     os.unsetenv('TRAVIS_CPU_ARCH')
-    ... else:
-    ...     os.environ['TRAVIS_CPU_ARCH'] = save_cpu_arch
-
-    """
-    if os.getenv("TRAVIS_CPU_ARCH", "").lower() == "ppc64le":
-        return True
-    else:
-        return False
-
-
-def os_is_windows() -> bool:
-    """
-    if it is a travis windows build
-
-    Parameter
-    ---------
-    TRAVIS_OS_NAME
-        from environment
-
-    Examples:
-
-    >>> # Setup
-    >>> save_travis_os_name = os.getenv('TRAVIS_OS_NAME')
-
-    >>> # TRAVIS_OS_NAME == 'linux'
-    >>> os.environ['TRAVIS_OS_NAME'] = 'linux'
-    >>> assert not os_is_windows()
+    >>> # runner.os == 'linux'
+    >>> set_env_data('runner.os', 'Linux')
+    >>> assert is_ci_runner_os_windows() == False
 
     >>> # TRAVIS_OS_NAME == 'windows'
-    >>> os.environ['TRAVIS_OS_NAME'] = 'windows'
-    >>> assert os_is_windows()
+    >>> set_env_data('runner.os', 'Windows')
+    >>> assert is_ci_runner_os_windows() == True
 
     >>> # Teardown
-    >>> if save_travis_os_name is None:
-    ...     os.unsetenv('TRAVIS_OS_NAME')
-    ... else:
-    ...     os.environ['TRAVIS_OS_NAME'] = save_travis_os_name
+    >>> set_env_data('runner.os', save_travis_os_name)
 
 
     """
-    if os.getenv("TRAVIS_OS_NAME", "").lower() == "windows":
-        return True
-    else:
-        return False
+    return get_env_data('runner.os').lower() == "windows"
 
 
-def os_is_linux() -> bool:
+def is_ci_runner_os_linux() -> bool:
     """
-    if it is a travis linux build
+    if the ci runner os is linux
 
     Parameter
     ---------
-    TRAVIS_OS_NAME
+    runner.os
         from environment
 
     Examples:
 
     >>> # Setup
-    >>> save_travis_os_name = os.getenv('TRAVIS_OS_NAME')
+    >>> save_travis_os_name = get_env_data('runner.os')
 
-    >>> # TRAVIS_OS_NAME == 'linux'
-    >>> os.environ['TRAVIS_OS_NAME'] = 'linux'
-    >>> assert os_is_linux()
+    >>> # runner.os == 'linux'
+    >>> set_env_data('runner.os', 'Linux')
+    >>> assert is_ci_runner_os_linux() == True
 
     >>> # TRAVIS_OS_NAME == 'windows'
-    >>> os.environ['TRAVIS_OS_NAME'] = 'windows'
-    >>> assert not os_is_linux()
+    >>> set_env_data('runner.os', 'Windows')
+    >>> assert is_ci_runner_os_linux() == False
 
     >>> # Teardown
-    >>> if save_travis_os_name is None:
-    ...     os.unsetenv('TRAVIS_OS_NAME')
-    ... else:
-    ...     os.environ['TRAVIS_OS_NAME'] = save_travis_os_name
-
+    >>> set_env_data('runner.os', save_travis_os_name)
 
     """
-    if os.getenv("TRAVIS_OS_NAME", "").lower() == "linux":
-        return True
-    else:
-        return False
+    return get_env_data('runner.os').lower() == "linux"
 
 
 def do_deploy() -> bool:
     """
     if we should deploy
-    if (DEPLOY_SDIST  or DEPLOY_WHEEL) and TRAVIS_TAG
+    if (DEPLOY_SDIST  or DEPLOY_WHEEL) and is_release()
 
     Parameter
     ---------
@@ -1151,56 +1075,45 @@ def do_deploy() -> bool:
         from environment
     DEPLOY_WHEEL
         from environment
-    TRAVIS_TAG
+    github.event_name
         from environment
 
     Examples:
 
     >>> # Setup
-    >>> save_travis_tag = os.getenv('TRAVIS_TAG')
-    >>> save_deploy_sdist = os.getenv('DEPLOY_SDIST')
-    >>> save_deploy_wheel = os.getenv('DEPLOY_WHEEL')
+    >>> save_github_event_name = get_env_data('github.event_name')
+    >>> save_deploy_sdist = get_env_data('DEPLOY_SDIST')
+    >>> save_deploy_wheel = get_env_data('DEPLOY_WHEEL')
 
     >>> # no Tagged Commit
-    >>> os.unsetenv('TRAVIS_TAG')
-    >>> # no real test here, we cant set environ in travis
-    >>> assert do_deploy() is not None
+    >>> set_env_data('github.event_name', 'push')
+    >>> assert False == do_deploy()
 
     >>> # Tagged Commit, DEPLOY_SDIST, DEPLOY_WHEEL != True
-    >>> os.environ['TRAVIS_TAG'] = 'SOME_TAG'
-    >>> os.unsetenv('DEPLOY_SDIST')
-    >>> os.unsetenv('DEPLOY_WHEEL')
-    >>> # no real test here, we cant set environ in travis
-    >>> assert do_deploy() is not None
+    >>> set_env_data('github.event_name', 'release')
+    >>> set_env_data('DEPLOY_SDIST', '')
+    >>> set_env_data('DEPLOY_WHEEL', '')
+    >>> assert False == do_deploy()
 
     >>> # Tagged Commit, DEPLOY_SDIST == True
-    >>> os.environ['DEPLOY_SDIST'] = 'True'
-    >>> # no real test here, we cant set environ in travis
-    >>> assert do_deploy() is not None
+    >>> set_env_data('github.event_name', 'release')
+    >>> set_env_data('DEPLOY_SDIST', 'True')
+    >>> set_env_data('DEPLOY_WHEEL', '')
+    >>> assert True == do_deploy()
 
     >>> # Teardown
-    >>> if save_travis_tag is None:
-    ...     os.unsetenv('TRAVIS_TAG')
-    ... else:
-    ...     os.environ['TRAVIS_TAG'] = save_travis_tag
-
-    >>> if save_deploy_sdist is None:
-    ...     os.unsetenv('DEPLOY_SDIST')
-    ... else:
-    ...     os.environ['DEPLOY_SDIST'] = save_deploy_sdist
-
-    >>> if save_deploy_wheel is None:
-    ...     os.unsetenv('DEPLOY_WHEEL')
-    ... else:
-    ...     os.environ['DEPLOY_WHEEL'] = save_deploy_wheel
-
+    >>> set_env_data('github.event_name', save_github_event_name)
+    >>> set_env_data('DEPLOY_SDIST', save_deploy_sdist)
+    >>> set_env_data('DEPLOY_WHEEL', save_deploy_wheel)
     """
-    if not os.getenv("TRAVIS_TAG"):
-        return False
-    if do_deploy_sdist() or do_deploy_wheel():
-        return True
-    else:
-        return False
+    return (do_deploy_sdist() or do_deploy_wheel()) and is_release()
+
+
+def is_release() -> bool:
+    """
+    Returns True, if this is a release (and then we deploy to pypi probably)
+    """
+    return get_env_data('github.event_name') == 'release'
 
 
 def get_env_data(env_variable: str) -> str:
@@ -1225,6 +1138,15 @@ def get_env_data(env_variable: str) -> str:
 
 def set_env_data(env_variable: str, env_str: str) -> None:
     os.environ[env_variable] = env_str
+
+
+def is_github_actions_active() -> bool:
+    """
+    if we are on github actions environment
+
+    >>> assert is_github_actions_active() == is_github_actions_active()
+    """
+    return bool(get_env_data('CI') and get_env_data('GITHUB_WORKFLOW') and get_env_data('GITHUB_RUN_ID'))
 
 
 if __name__ == "__main__":
