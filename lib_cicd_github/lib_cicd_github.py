@@ -245,14 +245,6 @@ def install(dry_run: bool = True) -> None:
         command=" ".join([pip_prefix, "install --upgrade readme_renderer"]),
     )
 
-    if is_pypy3() and is_ci_runner_os_linux():
-        # for pypy3 install rust compiler on linux to compile cryptography
-        run(
-            description="install rust compiler for twine",
-            command="curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y",
-        )
-        os.environ["PATH"] = ":".join([os.getenv("PATH", ""), str(pathlib.Path.home() / ".cargo/bin")])
-
     run(
         description="install twine",
         command=" ".join([pip_prefix, "install --upgrade twine"]),
@@ -973,36 +965,30 @@ def do_build_test() -> bool:
 
 def is_pypy3() -> bool:
     """
-    if it is a travis pypy3 build
+    if it is a pypy3 build
 
     Parameter
     ---------
-    TRAVIS_PYTHON_VERSION
+    matrix.python-version
         from environment
 
     Examples:
 
     >>> # Setup
-    >>> save_python_version = os.getenv('TRAVIS_PYTHON_VERSION')
+    >>> save_python_version = get_env_data('matrix.python-version')
 
     >>> # Test
-    >>> os.environ['TRAVIS_PYTHON_VERSION'] = 'pypy3'
-    >>> assert is_pypy3()
+    >>> set_env_data('matrix.python-version', 'pypy-3.7')
+    >>> assert is_pypy3() == True
 
-    >>> os.environ['TRAVIS_PYTHON_VERSION'] = '3.9'
-    >>> assert not is_pypy3()
+    >>> set_env_data('matrix.python-version', '3.9')
+    >>> assert is_pypy3() == False
 
     >>> # Teardown
-    >>> if save_python_version is None:
-    ...     os.unsetenv('TRAVIS_PYTHON_VERSION')
-    ... else:
-    ...     os.environ['TRAVIS_PYTHON_VERSION'] = save_python_version
+    >>> set_env_data('matrix.python-version', save_python_version)
 
     """
-    if os.getenv("TRAVIS_PYTHON_VERSION", "").lower() == "pypy3":
-        return True
-    else:
-        return False
+    return get_env_data('matrix.python-version').lower().startswith('pypy-3')
 
 
 def is_ci_runner_os_windows() -> bool:
