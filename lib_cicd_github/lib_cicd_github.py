@@ -1108,34 +1108,34 @@ def do_deploy() -> bool:
         from environment
     DEPLOY_WHEEL
         from environment
-    github.event_name
+    GITHUB_EVENT_NAME
         from environment
 
     Examples:
 
     >>> # Setup
-    >>> save_github_event_name = get_env_data('github.event_name')
+    >>> save_github_event_name = get_env_data('GITHUB_EVENT_NAME')
     >>> save_deploy_sdist = get_env_data('DEPLOY_SDIST')
     >>> save_deploy_wheel = get_env_data('DEPLOY_WHEEL')
 
     >>> # no Tagged Commit
-    >>> set_env_data('github.event_name', 'push')
+    >>> set_env_data('GITHUB_EVENT_NAME', 'push')
     >>> assert False == do_deploy()
 
     >>> # Tagged Commit, DEPLOY_SDIST, DEPLOY_WHEEL != True
-    >>> set_env_data('github.event_name', 'release')
+    >>> set_env_data('GITHUB_EVENT_NAME', 'release')
     >>> set_env_data('DEPLOY_SDIST', '')
     >>> set_env_data('DEPLOY_WHEEL', '')
     >>> assert False == do_deploy()
 
     >>> # Tagged Commit, DEPLOY_SDIST == True
-    >>> set_env_data('github.event_name', 'release')
+    >>> set_env_data('GITHUB_EVENT_NAME', 'release')
     >>> set_env_data('DEPLOY_SDIST', 'True')
     >>> set_env_data('DEPLOY_WHEEL', '')
     >>> assert True == do_deploy()
 
     >>> # Teardown
-    >>> set_env_data('github.event_name', save_github_event_name)
+    >>> set_env_data('GITHUB_EVENT_NAME', save_github_event_name)
     >>> set_env_data('DEPLOY_SDIST', save_deploy_sdist)
     >>> set_env_data('DEPLOY_WHEEL', save_deploy_wheel)
     """
@@ -1146,7 +1146,7 @@ def is_release() -> bool:
     """
     Returns True, if this is a release (and then we deploy to pypi probably)
     """
-    return get_env_data('github.event_name') == 'release'
+    return get_env_data('GITHUB_EVENT_NAME') == 'release'
 
 
 def get_env_data(env_variable: str) -> str:
