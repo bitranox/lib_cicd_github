@@ -445,46 +445,30 @@ def after_success(dry_run: bool = True) -> None:
     if dry_run:
         return
 
-    command_prefix = os.getenv("cPREFIX", "")
-    pip_prefix = get_pip_prefix()
+    command_prefix = get_env_data('cPREFIX')
+    cc_test_reporter_id = get_env_data('CC_TEST_REPORTER_ID').strip()
 
     if do_coverage():
-        run(
-            description="coverage report",
-            command=" ".join([command_prefix, "coverage report"]),
-        )
+        run(description="coverage report", command=f'{command_prefix} coverage report')
+
         if do_upload_codecov():
-            run(
-                description="coverage upload to codecov",
-                command=" ".join([command_prefix, "codecov"]),
-            )
+            run(description="coverage upload to codecov", command=f'{command_prefix} codecov')
         else:
             lib_log_utils.banner_spam("codecov upload disabled")
 
-        if do_upload_code_climate() and os.getenv("CC_TEST_REPORTER_ID"):
-            if is_ci_runner_os_windows():
-                lib_log_utils.banner_warning('Code Climate: no working "codeclimate-test-reporter" for Windows available, Nov. 2021')
-                '''
-                os.environ["CODECLIMATE_REPO_TOKEN"] = os.getenv("CC_TEST_REPORTER_ID", "")
-                run(
-                    description="install codeclimate-test-reporter",
-                    command=" ".join([pip_prefix, "install codeclimate-test-reporter"]),
-                )
-                run(
-                    description="coverage upload to codeclimate",
-                    command=" ".join([command_prefix, "codeclimate-test-reporter"]),
-                )
-                '''
-            elif is_ci_runner_os_macos() or is_ci_runner_os_linux():
-                download_code_climate_test_reporter()
+        if do_upload_code_climate() and cc_test_reporter_id:
+            if is_ci_runner_os_macos() or is_ci_runner_os_linux():
+                download_code_climate_test_reporter_on_linux_or_macos()
                 upload_code_climate_test_report_on_linux_or_macos()
+            elif is_ci_runner_os_windows():
+                lib_log_utils.banner_warning('Code Climate: no working "codeclimate-test-reporter" for Windows available, Nov. 2021')
             else:
                 lib_log_utils.banner_warning("Code Climate Coverage - unknown RUNNER_OS ")
         else:
             lib_log_utils.banner_spam("Code Climate Coverage is disabled, no CC_TEST_REPORTER_ID")
 
 
-def download_code_climate_test_reporter():
+def download_code_climate_test_reporter_on_linux_or_macos():
     download_link = ''
     if is_ci_runner_os_macos():
         download_link = 'https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64'
@@ -507,9 +491,10 @@ def download_code_climate_test_reporter():
 def upload_code_climate_test_report_on_linux_or_macos():
     # Test Exit Code is always zero here, since the previous step on github actions completed without error
     test_exit_code = 0
+    cc_test_reporter_id = get_env_data('CC_TEST_REPORTER_ID').strip()
     run(
         description="code climate test report upload",
-        command=f'./cc-test-reporter after-build --exit-code {test_exit_code}',
+        command=f'./cc-test-reporter after-build --exit-code {test_exit_code} --id {cc_test_reporter_id}',
     )
 
 
@@ -542,11 +527,12 @@ def deploy(dry_run: bool = True) -> None:
 
     if dry_run:
         return
-    command_prefix = os.getenv("cPREFIX", "")
+    command_prefix = get_env_data("cPREFIX")
     github_username = get_github_username()
-    pypi_password = os.getenv("PYPI_PASSWORD", "")
-
-    if do_deploy():
+    pypi_password = get_env_data("PYPI_PASSWORD").strip()
+    if not pypi_password:
+        lib_log_utils.banner_warning('can not deploy, because secret PYPI_PASSWORD is missing')
+    elif do_deploy():
         if not dry_run:  # pragma: no cover
             run(
                 description="upload to pypi",
