@@ -1017,7 +1017,7 @@ def is_ci_runner_os_windows() -> bool:
     Examples:
 
     >>> # Setup
-    >>> save_travis_os_name = get_env_data('RUNNER_OS')
+    >>> save_gha_os_name = get_env_data('RUNNER_OS')
 
     >>> # runner.os == 'linux'
     >>> set_env_data('RUNNER_OS', 'Linux')
@@ -1028,7 +1028,7 @@ def is_ci_runner_os_windows() -> bool:
     >>> assert is_ci_runner_os_windows() == True
 
     >>> # Teardown
-    >>> set_env_data('RUNNER_OS', save_travis_os_name)
+    >>> set_env_data('RUNNER_OS', save_gha_os_name)
 
 
     """
@@ -1047,7 +1047,7 @@ def is_ci_runner_os_linux() -> bool:
     Examples:
 
     >>> # Setup
-    >>> save_travis_os_name = get_env_data('RUNNER_OS')
+    >>> save_gha_os_name = get_env_data('RUNNER_OS')
 
     >>> # runner.os == 'linux'
     >>> set_env_data('RUNNER_OS', 'Linux')
@@ -1058,7 +1058,7 @@ def is_ci_runner_os_linux() -> bool:
     >>> assert is_ci_runner_os_linux() == False
 
     >>> # Teardown
-    >>> set_env_data('RUNNER_OS', save_travis_os_name)
+    >>> set_env_data('RUNNER_OS', save_gha_os_name)
 
     """
     return get_env_data('RUNNER_OS').lower() == "linux"
@@ -1076,7 +1076,7 @@ def is_ci_runner_os_macos() -> bool:
     Examples:
 
     >>> # Setup
-    >>> save_travis_os_name = get_env_data('RUNNER_OS')
+    >>> save_gha_os_name = get_env_data('RUNNER_OS')
 
     >>> # runner.os == 'linux'
     >>> set_env_data('RUNNER_OS', 'Linux')
@@ -1087,7 +1087,7 @@ def is_ci_runner_os_macos() -> bool:
     >>> assert is_ci_runner_os_macos() == True
 
     >>> # Teardown
-    >>> set_env_data('RUNNER_OS', save_travis_os_name)
+    >>> set_env_data('RUNNER_OS', save_gha_os_name)
 
 
     """
@@ -1181,6 +1181,6 @@ def is_github_actions_active() -> bool:
 
 if __name__ == "__main__":
     print(
-        b'this is a library only, the executable is named "lib_travis_cli.py"',
+        b'this is a library only, the executable is named "lib_cicd_github_cli.py"',
         file=sys.stderr,
     )
