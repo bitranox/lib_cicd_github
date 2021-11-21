@@ -599,14 +599,12 @@ def get_python_prefix() -> str:
 
 def get_github_username() -> str:
     """
-    get the github username like 'bitranox'
+    get the github username like 'bitranox' (the OWNER of the Repository !)
 
     >>> discard = get_github_username()
 
     """
-    repo_slug = os.getenv("TRAVIS_REPO_SLUG", "")
-    github_username = repo_slug.split("/")[0]
-    return github_username
+    return get_env_data('GITHUB_REPOSITORY_OWNER')
 
 
 def do_mypy_tests() -> bool:
