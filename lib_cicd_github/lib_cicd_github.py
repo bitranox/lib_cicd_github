@@ -357,7 +357,7 @@ def script(dry_run: bool = True) -> None:
     '''
 
     if do_setup_py_test():
-        run(description='setup.py test', command=f'{python_prefix}./setup.py test')
+        run(description='setup.py test', command=f'{python_prefix} ./setup.py test')
 
     if do_setup_py():
         run(description='setup.py install', command=f'{python_prefix} ./setup.py install')
