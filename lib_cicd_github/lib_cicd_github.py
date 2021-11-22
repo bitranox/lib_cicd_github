@@ -334,7 +334,7 @@ def script(dry_run: bool = True) -> None:
 
     if do_pytest():
         if do_coverage():
-            option_codecov = f"--cov= {package_name}"
+            option_codecov = f"--cov={package_name}"
         else:
             lib_log_utils.banner_spam("coverage disabled on this build")
             option_codecov = ""
