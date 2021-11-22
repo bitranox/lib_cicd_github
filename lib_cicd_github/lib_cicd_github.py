@@ -316,52 +316,55 @@ def script(dry_run: bool = True) -> None:
     if dry_run:
         return
     lib_log_utils.setup_handler()
-    cli_command = os.getenv("CLI_COMMAND", "")
-    command_prefix = os.getenv("cPREFIX", "")
+    command_prefix = get_env_data('cPREFIX')
+    package_name = get_env_data('PACKAGE_NAME')
     python_prefix = get_python_prefix()
-    package_name = os.getenv("PACKAGE_NAME", "")
+    pip_prefix = get_pip_prefix()
 
     if do_flake8_tests():
-        run(
-            description="flake8 tests",
-            command=" ".join([python_prefix, "-m flake8 --statistics --benchmark"]),
-        )
+        run(description='flake8 tests', command=f'{python_prefix} -m flake8 --statistics --benchmark')
     else:
         lib_log_utils.banner_spam("flake8 tests disabled on this build")
 
     if do_mypy_tests():
-        mypy_options = os.getenv("MYPY_OPTIONS", "")
-        run(
-            description="mypy tests",
-            command=" ".join([python_prefix, "-m mypy -p", package_name, mypy_options]),
-        )
+        mypy_options = get_env_data("MYPY_OPTIONS")
+        run(description="mypy tests", command=f"{python_prefix} -m mypy -p {package_name} {mypy_options}")
     else:
-        lib_log_utils.banner_spam("mypy typecheck --strict disabled on this build")
+        lib_log_utils.banner_spam("mypy tests disabled on this build")
 
     if do_pytest():
         if do_coverage():
-            option_codecov = "".join(["--cov=", package_name])
+            option_codecov = f"--cov= {package_name}"
         else:
-            lib_log_utils.banner_spam("coverage disabled")
+            lib_log_utils.banner_spam("coverage disabled on this build")
             option_codecov = ""
-        run(
-            description="run pytest",
-            command=" ".join([python_prefix, "-m pytest", option_codecov]),
-        )
+        run(description='run pytest', command=f'{python_prefix} -m pytest {option_codecov}')
     else:
-        lib_log_utils.banner_spam("pytest disabled")
+        lib_log_utils.banner_spam('pytest disabled on this build')
 
-    # run(description='setup.py test', command=' '.join([python_prefix, './setup.py test']))
-    # run(description='pip install, option test', command=' '.join([pip_prefix, 'install', repository, '--install-option test']))
-    # run(description='pip standard install', command=' '.join([pip_prefix, 'install', repository]))
-    run(
-        description="setup.py install",
-        command=" ".join([python_prefix, "./setup.py install"]),
-    )
-    run(
-        description="check CLI command",
-        command=" ".join([command_prefix, cli_command, "--version"]),
-    )
+    '''
+    # this takes a long time - we did not implement atm
+    if do_pip_install_option_test():
+        # pip install git+https://github.com/bitranox/cli_exit_tools.git@development
+        run(description='pip install --install-option test', command=f'{pip_prefix} install {repository} --install-option test')
+    '''
+
+    '''
+    # we dont need to test it
+    if do_pip_install():
+        # pip install git+https://github.com/bitranox/cli_exit_tools.git@development
+        run(description='pip standard install', command=' '.join([pip_prefix, 'install', repository]))
+    '''
+
+    if do_setup_py_test():
+        run(description='setup.py test', command=f'{python_prefix}./setup.py test')
+
+    if do_setup_py():
+        run(description='setup.py install', command=f'{python_prefix} ./setup.py install')
+
+    if do_check_cli():
+        cli_command = get_env_data('CLI_COMMAND')
+        run(description='check CLI command', command=f'{command_prefix} {cli_command} --version')
 
     if do_build_docs():
         rst_include_source = os.getenv("RST_INCLUDE_SOURCE", "")
@@ -369,23 +372,8 @@ def script(dry_run: bool = True) -> None:
         rst_include_source_name = pathlib.Path(rst_include_source).name
         rst_include_target_name = pathlib.Path(rst_include_target).name
         run(
-            description=" ".join(
-                [
-                    "rst rebuild",
-                    rst_include_target_name,
-                    "from",
-                    rst_include_source_name,
-                ]
-            ),
-            command=" ".join(
-                [
-                    command_prefix,
-                    "rst_include include",
-                    rst_include_source,
-                    rst_include_target,
-                ]
-            ),
-        )
+            description=f'rst rebuild {rst_include_target_name} from {rst_include_source_name}',
+            command=f'{command_prefix} rst_include include {rst_include_source} {rst_include_target}')
     else:
         lib_log_utils.banner_spam("rebuild doc file is disabled on this build")
 
@@ -693,10 +681,7 @@ def do_coverage() -> bool:
     ...     os.environ['DO_COVERAGE'] = save_do_coverage
 
     """
-    if os.getenv("DO_COVERAGE", "").lower() == "true":
-        return True
-    else:
-        return False
+    return get_env_data("DO_COVERAGE").lower() == "true"
 
 
 def do_upload_codecov() -> bool:
@@ -728,10 +713,7 @@ def do_upload_codecov() -> bool:
     ...     os.environ['DO_COVERAGE_UPLOAD_CODECOV'] = save_upload_codecov
 
     """
-    if os.getenv("DO_COVERAGE_UPLOAD_CODECOV", "").lower() == "true":
-        return True
-    else:
-        return False
+    return get_env_data("DO_COVERAGE_UPLOAD_CODECOV").lower() == "true"
 
 
 def do_upload_code_climate() -> bool:
@@ -763,10 +745,19 @@ def do_upload_code_climate() -> bool:
     ...     os.environ['DO_COVERAGE_UPLOAD_CODE_CLIMATE'] = save_upload_code_climate
 
     """
-    if os.getenv("DO_COVERAGE_UPLOAD_CODE_CLIMATE", "").lower() == "true":
-        return True
-    else:
-        return False
+    return get_env_data("DO_COVERAGE_UPLOAD_CODE_CLIMATE").lower() == "true"
+
+
+def do_setup_py() -> bool:
+    return get_env_data('DO_SETUP_INSTALL').lower() == 'true'
+
+
+def do_setup_py_test() -> bool:
+    return get_env_data('DO_SETUP_INSTALL_TEST').lower() == 'true'
+
+
+def do_check_cli() -> bool:
+    return get_env_data('DO_CLI_TEST').lower() == 'true'
 
 
 def do_build_docs() -> bool:
