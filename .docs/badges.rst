@@ -1,16 +1,18 @@
-|travis_build| |license| |jupyter| |pypi| |black|
+|build_badge| |license| |jupyter| |pypi| |pypi-downloads| |black|
 
 |codecov| |better_code| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
 
 
-.. |travis_build| image:: https://img.shields.io/travis/bitranox/lib_cicd_github/master.svg
-   :target: https://travis-ci.com/bitranox/lib_cicd_github
+
+.. |build_badge| image:: https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml/badge.svg
+   :target: https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml
+
 
 .. |license| image:: https://img.shields.io/github/license/webcomics/pywine.svg
    :target: http://en.wikipedia.org/wiki/MIT_License
 
 .. |jupyter| image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/bitranox/lib_cicd_github/master?filepath=lib_cicd_github.ipynb
+   :target: https://mybinder.org/v2/gh/bitranox/lib_cicd_github/master?filepath=lib_cicd_github.ipynb
 
 .. for the pypi status link note the dashes, not the underscore !
 .. |pypi| image:: https://img.shields.io/pypi/status/lib-cicd-github?label=PyPI%20Package
@@ -39,3 +41,7 @@
 
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
+
+.. |pypi-downloads| image:: https://img.shields.io/pypi/dm/lib-cicd-github
+   :target: https://pypi.org/project/lib-cicd-github/
+   :alt: PyPI - Downloads

@@ -190,21 +190,21 @@ def get_branch() -> str:
     """
     # get_branch}}}
 
-    github_ref = get_env_data('GITHUB_REF')
-    github_head_ref = get_env_data('GITHUB_HEAD_REF')
-    github_event_name = get_env_data('GITHUB_EVENT_NAME')
+    github_ref = get_env_data("GITHUB_REF")
+    github_head_ref = get_env_data("GITHUB_HEAD_REF")
+    github_event_name = get_env_data("GITHUB_EVENT_NAME")
 
-    if github_event_name == 'pull_request':
+    if github_event_name == "pull_request":
         branch = github_head_ref
-    elif github_event_name == 'release':
-        branch = 'release'
-    elif github_event_name == 'push':
+    elif github_event_name == "release":
+        branch = "release"
+    elif github_event_name == "push":
         if github_ref:
-            branch = github_ref.split('/')[-1]
+            branch = github_ref.split("/")[-1]
         else:
-            branch = f'unknown branch, event={github_event_name}'
+            branch = f"unknown branch, event={github_event_name}"
     else:
-        branch = f'unknown branch, event={github_event_name}'
+        branch = f"unknown branch, event={github_event_name}"
     return branch
 
 
@@ -316,13 +316,13 @@ def script(dry_run: bool = True) -> None:
     if dry_run:
         return
     lib_log_utils.setup_handler()
-    command_prefix = get_env_data('cPREFIX')
-    package_name = get_env_data('PACKAGE_NAME')
+    command_prefix = get_env_data("cPREFIX")
+    package_name = get_env_data("PACKAGE_NAME")
     python_prefix = get_python_prefix()
-    pip_prefix = get_pip_prefix()
+    # pip_prefix = get_pip_prefix()
 
     if do_flake8_tests():
-        run(description='flake8 tests', command=f'{python_prefix} -m flake8 --statistics --benchmark')
+        run(description="flake8 tests", command=f"{python_prefix} -m flake8 --statistics --benchmark")
     else:
         lib_log_utils.banner_spam("flake8 tests disabled on this build")
 
@@ -338,33 +338,33 @@ def script(dry_run: bool = True) -> None:
         else:
             lib_log_utils.banner_spam("coverage disabled on this build")
             option_codecov = ""
-        run(description='run pytest', command=f'{python_prefix} -m pytest {option_codecov}')
+        run(description="run pytest", command=f"{python_prefix} -m pytest {option_codecov}")
     else:
-        lib_log_utils.banner_spam('pytest disabled on this build')
+        lib_log_utils.banner_spam("pytest disabled on this build")
 
-    '''
+    """
     # this takes a long time - we did not implement atm
     if do_pip_install_option_test():
         # pip install git+https://github.com/bitranox/cli_exit_tools.git@development
         run(description='pip install --install-option test', command=f'{pip_prefix} install {repository} --install-option test')
-    '''
+    """
 
-    '''
+    """
     # we dont need to test it
     if do_pip_install():
         # pip install git+https://github.com/bitranox/cli_exit_tools.git@development
         run(description='pip standard install', command=' '.join([pip_prefix, 'install', repository]))
-    '''
+    """
 
     if do_setup_py_test():
-        run(description='setup.py test', command=f'{python_prefix} ./setup.py test')
+        run(description="setup.py test", command=f"{python_prefix} ./setup.py test")
 
     if do_setup_py():
-        run(description='setup.py install', command=f'{python_prefix} ./setup.py install')
+        run(description="setup.py install", command=f"{python_prefix} ./setup.py install")
 
     if do_check_cli():
-        cli_command = get_env_data('CLI_COMMAND')
-        run(description='check CLI command', command=f'{command_prefix} {cli_command} --version')
+        cli_command = get_env_data("CLI_COMMAND")
+        run(description="check CLI command", command=f"{command_prefix} {cli_command} --version")
 
     if do_build_docs():
         rst_include_source = os.getenv("RST_INCLUDE_SOURCE", "")
@@ -372,8 +372,9 @@ def script(dry_run: bool = True) -> None:
         rst_include_source_name = pathlib.Path(rst_include_source).name
         rst_include_target_name = pathlib.Path(rst_include_target).name
         run(
-            description=f'rst rebuild {rst_include_target_name} from {rst_include_source_name}',
-            command=f'{command_prefix} rst_include include {rst_include_source} {rst_include_target}')
+            description=f"rst rebuild {rst_include_target_name} from {rst_include_source_name}",
+            command=f"{command_prefix} rst_include include {rst_include_source} {rst_include_target}",
+        )
     else:
         lib_log_utils.banner_spam("rebuild doc file is disabled on this build")
 
@@ -398,6 +399,7 @@ def script(dry_run: bool = True) -> None:
             description="check distributions",
             command=" ".join([command_prefix, "twine check dist/*"]),
         )
+        list_dist_directory()
 
 
 # after_success{{{
@@ -433,14 +435,14 @@ def after_success(dry_run: bool = True) -> None:
     if dry_run:
         return
 
-    command_prefix = get_env_data('cPREFIX')
-    cc_test_reporter_id = get_env_data('CC_TEST_REPORTER_ID').strip()
+    command_prefix = get_env_data("cPREFIX")
+    cc_test_reporter_id = get_env_data("CC_TEST_REPORTER_ID").strip()
 
     if do_coverage():
-        run(description="coverage report", command=f'{command_prefix} coverage report')
+        run(description="coverage report", command=f"{command_prefix} coverage report")
 
         if do_upload_codecov():
-            run(description="coverage upload to codecov", command=f'{command_prefix} codecov')
+            run(description="coverage upload to codecov", command=f"{command_prefix} codecov")
         else:
             lib_log_utils.banner_spam("codecov upload disabled")
 
@@ -456,33 +458,33 @@ def after_success(dry_run: bool = True) -> None:
             lib_log_utils.banner_spam("Code Climate Coverage is disabled, no CC_TEST_REPORTER_ID")
 
 
-def download_code_climate_test_reporter_on_linux_or_macos():
-    download_link = ''
+def download_code_climate_test_reporter_on_linux_or_macos() -> None:
+    download_link = ""
     if is_ci_runner_os_macos():
-        download_link = 'https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64'
+        download_link = "https://codeclimate.com/downloads/test-reporter/test-reporter-latest-darwin-amd64"
     elif is_ci_runner_os_linux():
-        download_link = 'https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64'
+        download_link = "https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64"
     else:
         lib_log_utils.banner_warning("Code Climate Coverage - unknown RUNNER_OS ")
 
     run(
-        description='download code climate test reporter',
-        command=f'curl -L {download_link} > ./cc-test-reporter',
+        description="download code climate test reporter",
+        command=f"curl -L {download_link} > ./cc-test-reporter",
     )
     run(
-        description='set permissions for code climate test reporter',
+        description="set permissions for code climate test reporter",
         banner=False,
-        command='chmod +x ./cc-test-reporter',
+        command="chmod +x ./cc-test-reporter",
     )
 
 
-def upload_code_climate_test_report_on_linux_or_macos():
+def upload_code_climate_test_report_on_linux_or_macos() -> None:
     # Test Exit Code is always zero here, since the previous step on github actions completed without error
     test_exit_code = 0
-    cc_test_reporter_id = get_env_data('CC_TEST_REPORTER_ID').strip()
+    cc_test_reporter_id = get_env_data("CC_TEST_REPORTER_ID").strip()
     run(
         description="code climate test report upload",
-        command=f'./cc-test-reporter after-build --exit-code {test_exit_code} --id {cc_test_reporter_id}',
+        command=f"./cc-test-reporter after-build --exit-code {test_exit_code} --id {cc_test_reporter_id}",
     )
 
 
@@ -519,7 +521,7 @@ def deploy(dry_run: bool = True) -> None:
     github_username = get_github_username()
     pypi_password = get_env_data("PYPI_PASSWORD").strip()
     if not pypi_password:
-        lib_log_utils.banner_warning('can not deploy, because secret PYPI_PASSWORD is missing')
+        lib_log_utils.banner_warning("can not deploy, because secret PYPI_PASSWORD is missing")
     elif do_deploy():
         if not dry_run:  # pragma: no cover
             run(
@@ -539,6 +541,15 @@ def deploy(dry_run: bool = True) -> None:
             )  # pragma: no cover
     else:
         lib_log_utils.banner_spam("pypi deploy is disabled on this build")
+
+
+def list_dist_directory() -> None:
+    """dir the dist directory if exists"""
+    command_prefix = get_env_data("cPREFIX")
+    if pathlib.Path("./dist").is_dir():
+        run(description="list ./dist directory", command=f"{command_prefix} ls -l ./dist")
+    else:
+        lib_log_utils.banner_warning('no "./dist" directory found')
 
 
 def get_pip_prefix() -> str:
@@ -578,7 +589,7 @@ def get_github_username() -> str:
     >>> discard = get_github_username()
 
     """
-    return get_env_data('GITHUB_REPOSITORY_OWNER')
+    return get_env_data("GITHUB_REPOSITORY_OWNER")
 
 
 def do_mypy_tests() -> bool:
@@ -749,15 +760,15 @@ def do_upload_code_climate() -> bool:
 
 
 def do_setup_py() -> bool:
-    return get_env_data('DO_SETUP_INSTALL').lower() == 'true'
+    return get_env_data("DO_SETUP_INSTALL").lower() == "true"
 
 
 def do_setup_py_test() -> bool:
-    return get_env_data('DO_SETUP_INSTALL_TEST').lower() == 'true'
+    return get_env_data("DO_SETUP_INSTALL_TEST").lower() == "true"
 
 
 def do_check_cli() -> bool:
-    return get_env_data('DO_CLI_TEST').lower() == 'true'
+    return get_env_data("DO_CLI_TEST").lower() == "true"
 
 
 def do_build_docs() -> bool:
@@ -979,7 +990,7 @@ def is_pypy3() -> bool:
     >>> set_env_data('matrix.python-version', save_python_version)
 
     """
-    return get_env_data('matrix.python-version').lower().startswith('pypy-3')
+    return get_env_data("matrix.python-version").lower().startswith("pypy-3")
 
 
 def is_ci_runner_os_windows() -> bool:
@@ -1009,7 +1020,7 @@ def is_ci_runner_os_windows() -> bool:
 
 
     """
-    return get_env_data('RUNNER_OS').lower() == "windows"
+    return get_env_data("RUNNER_OS").lower() == "windows"
 
 
 def is_ci_runner_os_linux() -> bool:
@@ -1038,7 +1049,7 @@ def is_ci_runner_os_linux() -> bool:
     >>> set_env_data('RUNNER_OS', save_gha_os_name)
 
     """
-    return get_env_data('RUNNER_OS').lower() == "linux"
+    return get_env_data("RUNNER_OS").lower() == "linux"
 
 
 def is_ci_runner_os_macos() -> bool:
@@ -1068,7 +1079,7 @@ def is_ci_runner_os_macos() -> bool:
 
 
     """
-    return get_env_data('RUNNER_OS').lower() == "macos"
+    return get_env_data("RUNNER_OS").lower() == "macos"
 
 
 def do_deploy() -> bool:
@@ -1120,7 +1131,7 @@ def is_release() -> bool:
     """
     Returns True, if this is a release (and then we deploy to pypi probably)
     """
-    return get_env_data('GITHUB_EVENT_NAME') == 'release'
+    return get_env_data("GITHUB_EVENT_NAME") == "release"
 
 
 def get_env_data(env_variable: str) -> str:
@@ -1139,7 +1150,7 @@ def get_env_data(env_variable: str) -> str:
     if env_variable in os.environ:
         env_data = os.environ[env_variable]
     else:
-        env_data = ''
+        env_data = ""
     return env_data
 
 
@@ -1153,7 +1164,7 @@ def is_github_actions_active() -> bool:
 
     >>> assert is_github_actions_active() == is_github_actions_active()
     """
-    return bool(get_env_data('CI') and get_env_data('GITHUB_WORKFLOW') and get_env_data('GITHUB_RUN_ID'))
+    return bool(get_env_data("CI") and get_env_data("GITHUB_WORKFLOW") and get_env_data("GITHUB_RUN_ID"))
 
 
 if __name__ == "__main__":

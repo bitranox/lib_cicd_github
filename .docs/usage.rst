@@ -3,12 +3,12 @@
 
 .. code-block:: bash
 
-    # to be used in travis.yml
+    # to be used in the github action YAML File
     # run a command passed as string, wrap it in colored banners, retry 3 times, sleep 30 seconds when retry
     $> lib_cicd_github_cli run "description" "command -some -options" --retry=3 --sleep=30
 
 
-- get the branch to work on from travis environment variables
+- get the branch to work on from environment variables
 
 .. code-block:: bash
 
@@ -16,35 +16,35 @@
 
 python methods:
 
-- install, jobs to do in the Travis "install" section
+- install, installs all needed dependencies to build and deploy the project
 
 .. include:: ../lib_cicd_github/lib_cicd_github.py
     :code: python
     :start-after: # install{{{
     :end-before: # install}}}
 
-- script, jobs to do in the Travis "script" section
+- script, run all tests
 
 .. include:: ../lib_cicd_github/lib_cicd_github.py
     :code: python
     :start-after: # script{{{
     :end-before: # script}}}
 
-- after_success, jobs to do in the Travis "after_success" section
+- after_success, upload code coverage and codeclimate reports
 
 .. include:: ../lib_cicd_github/lib_cicd_github.py
     :code: python
     :start-after: # after_success{{{
     :end-before: # after_success}}}
 
-- deploy, deploy to pypi in the Travis "after_success" section
+- deploy, deploy to pypi
 
 .. include:: ../lib_cicd_github/lib_cicd_github.py
     :code: python
     :start-after: # deploy{{{
     :end-before: # deploy}}}
 
-- get_branch, determine the branch to work on from Travis environment
+- get_branch, determine the branch to work on
 
 .. include:: ../lib_cicd_github/lib_cicd_github.py
     :code: python
@@ -60,7 +60,7 @@ python methods:
     :start-after: # run{{{
     :end-before: # run}}}
 
-- travis.py example
+- github actions yml File example
 
-.. include:: ../.travis.yml
+.. include:: ../.github/workflows/python-package.yml
     :code: yaml

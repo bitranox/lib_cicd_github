@@ -5,8 +5,8 @@ import subprocess
 import sys
 
 logger = logging.getLogger()
-package_dir = "lib_travis"
-cli_filename = "lib_travis_cli.py"
+package_dir = "lib_cicd_github"
+cli_filename = "lib_cicd_github_cli.py"
 
 path_cli_command = pathlib.Path(__file__).resolve().parent.parent / package_dir / cli_filename
 

@@ -2,21 +2,23 @@ lib_cicd_github
 ===============
 
 
-Version v0.0.1 as of 2021-11-20 see `Changelog`_
+Version v1.0.0 as of 2022-03-25 see `Changelog`_
 
-|travis_build| |license| |jupyter| |pypi| |black|
+|build_badge| |license| |jupyter| |pypi| |pypi-downloads| |black|
 
 |codecov| |better_code| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
 
 
-.. |travis_build| image:: https://img.shields.io/travis/bitranox/lib_cicd_github/master.svg
-   :target: https://travis-ci.com/bitranox/lib_cicd_github
+
+.. |build_badge| image:: https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml/badge.svg
+   :target: https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml
+
 
 .. |license| image:: https://img.shields.io/github/license/webcomics/pywine.svg
    :target: http://en.wikipedia.org/wiki/MIT_License
 
 .. |jupyter| image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/bitranox/lib_cicd_github/master?filepath=lib_cicd_github.ipynb
+   :target: https://mybinder.org/v2/gh/bitranox/lib_cicd_github/master?filepath=lib_cicd_github.ipynb
 
 .. for the pypi status link note the dashes, not the underscore !
 .. |pypi| image:: https://img.shields.io/pypi/status/lib-cicd-github?label=PyPI%20Package
@@ -46,10 +48,14 @@ Version v0.0.1 as of 2021-11-20 see `Changelog`_
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
 
-small utils for travis:
+.. |pypi-downloads| image:: https://img.shields.io/pypi/dm/lib-cicd-github
+   :target: https://pypi.org/project/lib-cicd-github/
+   :alt: PyPI - Downloads
+
+small utils for github actions:
  - print colored banners
  - wrap commands into run/success/error banners, with automatic retry
- - resolve the branch to test, based on the travis environment variables
+ - resolve the branch to test, based on the environment variables
 
 ----
 
@@ -58,9 +64,9 @@ automated tests, Travis Matrix, Documentation, Badges, etc. are managed with `Pi
 
 Python version required: 3.6.0 or newer
 
-tested on linux "bionic" with python 3.6, 3.7, 3.8, 3.9, 3.9-dev, pypy3 - architectures: amd64, ppc64le, s390x, arm64
+tested on recent linux with python 3.6, 3.7, 3.8, 3.9, 3.10.0, pypy-3.8 - architectures: amd64
 
-`100% code coverage <https://codecov.io/gh/bitranox/lib_cicd_github>`_, flake8 style checking ,mypy static type checking ,tested under `Linux, macOS <https://travis-ci.org/bitranox/lib_cicd_github>`_, automatic daily builds and monitoring
+`100% code coverage <https://codecov.io/gh/bitranox/lib_cicd_github>`_, flake8 style checking ,mypy static type checking ,tested under `Linux, macOS, Windows <https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml>`_, automatic daily builds and monitoring
 
 ----
 
@@ -92,12 +98,12 @@ Usage
 
 .. code-block:: bash
 
-    # to be used in travis.yml
+    # to be used in the github action YAML File
     # run a command passed as string, wrap it in colored banners, retry 3 times, sleep 30 seconds when retry
     $> lib_cicd_github_cli run "description" "command -some -options" --retry=3 --sleep=30
 
 
-- get the branch to work on from travis environment variables
+- get the branch to work on from environment variables
 
 .. code-block:: bash
 
@@ -105,7 +111,7 @@ Usage
 
 python methods:
 
-- install, jobs to do in the Travis "install" section
+- install, installs all needed dependencies to build and deploy the project
 
 .. code-block:: python
 
@@ -123,12 +129,12 @@ python methods:
         Examples
         --------
 
-        >>> if os.getenv('TRAVIS'):
+        >>> if is_github_actions_active():
         ...     install(dry_run=True)
 
         """
 
-- script, jobs to do in the Travis "script" section
+- script, run all tests
 
 .. code-block:: python
 
@@ -182,7 +188,7 @@ python methods:
 
         """
 
-- after_success, jobs to do in the Travis "after_success" section
+- after_success, upload code coverage and codeclimate reports
 
 .. code-block:: python
 
@@ -214,7 +220,7 @@ python methods:
 
         """
 
-- deploy, deploy to pypi in the Travis "after_success" section
+- deploy, deploy to pypi
 
 .. code-block:: python
 
@@ -243,22 +249,20 @@ python methods:
 
         """
 
-- get_branch, determine the branch to work on from Travis environment
+- get_branch, determine the branch to work on
 
 .. code-block:: python
 
     def get_branch() -> str:
         """
-        Return the branch to work on
+        Returns the branch to work on :
+            <branch>    for push, pull requests, merge
+            'release'   for tagged releases
 
 
         Parameter
         ---------
-        TRAVIS_BRANCH
-            from environment
-        TRAVIS_PULL_REQUEST_BRANCH
-            from environment
-        TRAVIS_TAG
+        github.ref, github.head_ref, github.event_name, github.job
             from environment
 
         Result
@@ -271,27 +275,55 @@ python methods:
         none
 
 
-        ============  =============  ==========================  ==========  =======================================================
-        Build         TRAVIS_BRANCH  TRAVIS_PULL_REQUEST_BRANCH  TRAVIS_TAG  Notice
-        ============  =============  ==========================  ==========  =======================================================
-        Custom Build  <branch>       ---                         ---         return <branch> from TRAVIS_BRANCH
-        Push          <branch>       ---                         ---         return <branch> from TRAVIS_BRANCH
-        Pull Request  <master>       <branch>                    ---         return <branch> from TRAVIS_PULL_REQUEST_BRANCH
-        Tagged        <tag>          ---                         <tag>       return 'master'
-        ============  =============  ==========================  ==========  =======================================================
+        ==============  ===================  ===================  ===================  ===================
+        Build           github.ref           github.head_ref      github.event_name    github.job
+        ==============  ===================  ===================  ===================  ===================
+        Push            refs/heads/<branch>  ---                  push                 build
+        Custom Build    refs/heads/<branch>  ---                  push                 build
+        Pull Request    refs/pull/xx/merge   <branch>             pull_request         build
+        Merge           refs/heads/<branch>  ---                  push                 build
+        Publish Tagged  refs/tags/<tag>      ---                  release              build
+        ==============  ===================  ===================  ===================  ===================
 
-        TRAVIS_BRANCH:
-            for push builds, or builds not triggered by a pull request, this is the name of the branch.
-            for builds triggered by a pull request this is the name of the branch targeted by the pull request.
-            for builds triggered by a tag, this is the same as the name of the tag (TRAVIS_TAG).
-            Note that for tags, git does not store the branch from which a commit was tagged. (so we use always master in that case)
+        >>> # Setup
+        >>> github_ref_backup = get_env_data('GITHUB_REF')
+        >>> github_head_ref_backup = get_env_data('GITHUB_HEAD_REF')
+        >>> github_event_name_backup = get_env_data('GITHUB_EVENT_NAME')
 
-        TRAVIS_PULL_REQUEST_BRANCH:
-            if the current job is a pull request, the name of the branch from which the PR originated.
-            if the current job is a push build, this variable is empty ("").
+        >>> # test Push
+        >>> set_env_data('GITHUB_REF', 'refs/heads/development')
+        >>> set_env_data('GITHUB_HEAD_REF', '')
+        >>> set_env_data('GITHUB_EVENT_NAME', 'push')
+        >>> assert get_branch() == 'development'
 
-        TRAVIS_TAG:
-            If the current build is for a git tag, this variable is set to the tag’s name, otherwise it is empty ("").
+        >>> # test Push without github.ref
+        >>> set_env_data('GITHUB_REF', '')
+        >>> set_env_data('GITHUB_HEAD_REF', '')
+        >>> set_env_data('GITHUB_EVENT_NAME', 'push')
+        >>> assert get_branch() == 'unknown branch, event=push'
+
+        >>> # test PR
+        >>> set_env_data('GITHUB_REF', 'refs/pull/xx/merge')
+        >>> set_env_data('GITHUB_HEAD_REF', 'master')
+        >>> set_env_data('GITHUB_EVENT_NAME', 'pull_request')
+        >>> assert get_branch() == 'master'
+
+        >>> # test Publish
+        >>> set_env_data('GITHUB_REF', 'refs/tags/v1.1.15')
+        >>> set_env_data('GITHUB_HEAD_REF', '')
+        >>> set_env_data('GITHUB_EVENT_NAME', 'release')
+        >>> assert get_branch() == 'release'
+
+        >>> # test unknown event_name
+        >>> set_env_data('GITHUB_REF', '')
+        >>> set_env_data('GITHUB_HEAD_REF', '')
+        >>> set_env_data('GITHUB_EVENT_NAME', 'unknown_event')
+        >>> assert get_branch() == 'unknown branch, event=unknown_event'
+
+        >>> # Teardown
+        >>> set_env_data('GITHUB_REF', github_ref_backup)
+        >>> set_env_data('GITHUB_HEAD_REF', github_head_ref_backup)
+        >>> set_env_data('GITHUB_EVENT_NAME', github_event_name_backup)
 
         """
 
@@ -356,218 +388,264 @@ python methods:
 
         """
 
-- travis.py example
+- github actions yml File example
 
 .. code-block:: yaml
 
-    language: python
-    group: travis_latest
-    dist: bionic
-    sudo: true
+    # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+    # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-    env:
-        global:
+    name: Python package
+
+    on:
+      push:
+        branches: [ master, development ]
+      pull_request:
+        branches: [ master, development ]
+      release:
+        branches: [ master, development ]
+        # release types see : https://docs.github.com/en/actions/reference/events-that-trigger-workflows#release
+        # he prereleased type will not trigger for pre-releases published from draft releases, but the published type will trigger.
+        # If you want a workflow to run when stable and pre-releases publish, subscribe to published instead of released and prereleased.
+        types: [published]
+
+      schedule:
+          # * is a special character in YAML, so you have to quote this string
+          # | minute | hour (UTC) | day of month (1-31) | month (1-2) | day of week (0-6 or SUN-SAT)
+          # every day at 05:40 am UTC - avoid 05:00 because of high load at the beginning of every hour
+          - cron:  '40 5 * * *'
+
+
+    jobs:
+
+      build:
+        runs-on: ${{ matrix.os }}
+
+        env:
             # prefix before commands - used for wine, there the prefix is "wine"
-            - cPREFIX=""
-            # command to launch python interpreter (its different on macOs, there we need python3)
-            - cPYTHON="python"
-            # command to launch pip (its different on macOs, there we need pip3)
-            - cPIP="python -m pip"
+            cPREFIX: ""
+            # command to launch python interpreter (it's different on macOS, there we need python3)
+            cPYTHON: "python"
+            # command to launch pip (it's different on macOS, there we need pip3)
+            cPIP: "python -m pip"
             # switch off wine fix me messages
-            - WINEDEBUG=fixme-all
+            WINEDEBUG: fixme-all
 
             # PYTEST
-            - PYTEST_DO_TESTS="True"
+            PYTEST_DO_TESTS: "True"
 
             # FLAKE8 tests
-            - DO_FLAKE8_TESTS="True"
+            DO_FLAKE8_TESTS: "True"
 
             # MYPY tests
-            - MYPY_DO_TESTS="True"
-            - MYPY_OPTIONS="--follow-imports=normal --ignore-missing-imports --implicit-reexport --no-warn-unused-ignores --strict"
-            - MYPYPATH="./lib_cicd_github/3rd_party_stubs"
+            MYPY_DO_TESTS: "True"
+            MYPY_OPTIONS: "--follow-imports=normal --ignore-missing-imports --implicit-reexport --install-types --no-warn-unused-ignores --non-interactive --strict"
+            MYPYPATH: "./lib_cicd_github/3rd_party_stubs"
 
             # coverage
-            - DO_COVERAGE="True"
-            - DO_COVERAGE_UPLOAD_CODECOV="True"
-            - DO_COVERAGE_UPLOAD_CODE_CLIMATE="True"
+            DO_COVERAGE: "True"
+            DO_COVERAGE_UPLOAD_CODECOV: "True"
+            DO_COVERAGE_UPLOAD_CODE_CLIMATE: "True"
 
             # package name
-            - PACKAGE_NAME="lib_cicd_github"
+            PACKAGE_NAME: "lib_cicd_github"
             # the registered CLI Command
-            - CLI_COMMAND="lib_cicd_github"
+            CLI_COMMAND: "lib_cicd_github"
             # the source file for rst_include (rebuild rst file includes)
-            - RST_INCLUDE_SOURCE="./.docs/README_template.rst"
+            RST_INCLUDE_SOURCE: "./.docs/README_template.rst"
             # the target file for rst_include (rebuild rst file includes)
-            - RST_INCLUDE_TARGET="./README.rst"
-
-            # secure environment variable
-            - secure: "O8oOuJ4NfK9HRstY43GSgZcvmR2K/3N+rWzzNYHgKoNvOeBUMMQ6t90Pmgir/VfBF6TvkMxJwXnkAvFCtFAvzRN6KdgVq9UqkJ7CCS9woQxddPfFoTNwQDrySWmbD+cefh1Dt2uIGbnIhvWVCWlYbNAxfZ3IOTEhqfl2OOza44P8PJPplp83wKgbD899Th3qY8k77Kzh9+B2ErFVDBtVe8M10vI74WkuyZ/HP4ue1z5noa9cklkm9B1stf1Jqf4vW4lGnnsaR1camM5PH03OpFquxOvTTaoI+FAntW8zl8C+sFLC1xp4Emu3lT73OFtEXYUsvI7InWFEwl5k4pMMAXFVE4Nqf5PZviXGxtOTNI13gSBVcMw44eujoRpVrXzixQdrbhYUcID9mC3ApRh2002XxGVvHgLXxiKkBG/1yMNCsuRZrev45j4J/GItNvfswEtLDUTWOO+plxWsNSh2V7qfHFLnNJyBCU8sGj7sgyzQvS4YyJQ5V7pMeoXyvwnOU1lHYRCXbshO6Y/r3+PkCr1UcQXwH6/1awwwNDGK4DJ3BZHGeJTr7NI/IiJvgnLnXUAN6hpNW1V3GEbPMkz3FmcPkivmvVD8XOBl+w8OLghGCyqETbIfFhvplZ/S3dBthJLxlpEqJItNeG5dwdLAytwpFLWu40biRzrf/GsjkS8="  # CC_TEST_REPORTER_ID.secret
-            - secure: "ME0CLFezdNlt8gbWEXNq6c8uT2kzbLmp4GoxUlJpsYG8A3xV+KrDXJ/RR66So62A5tvdxd8d8IN7j3HcapXqMyi/mbCDVu2eZXKOl/cGphMUS5lI80jjs/Yp6CwNC/qvBhe6bqkOXvhZS4I+4GTJOtRUEQJ5OLrf0uoGEVq9Tx6WKAElgcYMXdJNKwW8hSfUg5N2Ujq/PaaMXj7vIJSUBKWioIIx5doF7YSlixwCxj0HStyxX/lSy6VO1FJO2ZFsNN/jglduBJzbrYh6gcUbUc6fHCKzlr4RM70Ylb1rRkZSSY1uDvgTM6WiUS/LwN+65v+Z/rbucPJ/l8SGoEyrS/xytcECUq1oiyq+IMvJplspCV3/m+UGYd8jdJsG+O+WQQE0PknhBAtp22HJgI8xjU67SArXtbxA0/WhN/R7hulphnCDCqkyjR8lsao6mjXligsGbvHdm17u6dm0OCgpjA+R10ZW4SCOwDuGyA0prqOCsODRYLNnGXrNHUhJvrmx1TgkrIPL5VJIW3urujIj/G+clCgPzb+Dr/VAys0FNaRug1qFaoGAEFDutSJ/cALfTdiIU3RAVJ8lIChxmnaGneDf7GUKo36jjs9rdc5cqjHX4BG/7t5XSIymS8tBx1CWTxYVIGEhzSswDwcT2iZhBEuj+AJnY5ThE+bVNg2zhDw="  # PYPI_PASSWORD.secret
-
-
-
-    addons:
-        apt:
-            packages:
-                - xvfb      # install xvfb virtual framebuffer - this we need for WINE
-                - winbind   # needed for WINE
-
-    services:   			# start services
-      - xvfb    			# is needed for WINE on headless installation
-
-    matrix:
-        include:
+            RST_INCLUDE_TARGET: "./README.rst"
+            # make Code Coverage Secret available in Environment
+            CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+            # make PyPi Password available in Environment
+            PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 
 
-        - os: linux
-          arch: "amd64"
-          if: true
-          language: python
-          python: "3.6"
-          before_install:
-              - export BUILD_DOCS="False"
-              - export DEPLOY_SDIST="True"
-              - export DEPLOY_WHEEL="True"
-              - export BUILD_TEST="True"
-              - export MYPY_DO_TESTS="True"
+        strategy:
+          matrix:
+            include:
+              # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-software
 
-        - os: linux
-          arch: "amd64"
-          if: true
-          language: python
-          python: "3.7"
-          before_install:
-              - export BUILD_DOCS="False"
-              - export DEPLOY_SDIST="True"
-              - export DEPLOY_WHEEL="False"
-              - export BUILD_TEST="True"
-              - export MYPY_DO_TESTS="True"
+              - os: windows-latest
+                python-version: 3.9
+                env:
+                  cEXPORT: "SET"
+                  BUILD_DOCS: "False"
+                  DEPLOY_SDIST: "False"
+                  DEPLOY_WHEEL: "False"
+                  DEPLOY_TEST: "False"
+                  MYPY_DO_TESTS: "True"
+                  # Setup tests
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "True"
+                  # Test registered CLI Command
+                  DO_CLI_TEST: "True"
 
-        - os: linux
-          arch: "amd64"
-          if: true
-          language: python
-          python: "3.8"
-          before_install:
-              - export BUILD_DOCS="False"
-              - export DEPLOY_SDIST="True"
-              - export DEPLOY_WHEEL="True"
-              - export BUILD_TEST="True"
-              - export MYPY_DO_TESTS="True"
 
-        - os: linux
-          arch: "amd64"
-          if: true
-          language: python
-          python: "3.9"
-          before_install:
-              - export BUILD_DOCS="True"
-              - export DEPLOY_SDIST="True"
-              - export DEPLOY_WHEEL="True"
-              - export BUILD_TEST="True"
-              - export MYPY_DO_TESTS="True"
+              - os: ubuntu-latest
+                python-version: "3.6"
+                env:
+                  BUILD_DOCS: "False"
+                  DEPLOY_SDIST: "True"
+                  DEPLOY_WHEEL: "True"
+                  DEPLOY_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "False"
+                  DO_CLI_TEST: "True"
 
-        - os: linux
-          arch: "amd64"
-          if: true
-          language: python
-          python: "3.9-dev"
-          before_install:
-              - export BUILD_DOCS="False"
-              - export DEPLOY_SDIST="True"
-              - export DEPLOY_WHEEL="True"
-              - export BUILD_TEST="True"
-              - export MYPY_DO_TESTS="True"
+              - os: ubuntu-latest
+                python-version: "3.7"
+                env:
+                  BUILD_DOCS: "False"
+                  DEPLOY_SDIST: "True"
+                  DEPLOY_WHEEL: "True"
+                  DEPLOY_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "False"
+                  DO_CLI_TEST: "True"
 
-        - os: linux
-          arch: "amd64"
-          if: true
-          language: python
-          python: "pypy3"
-          before_install:
-              - export BUILD_DOCS="False"
-              - export DEPLOY_SDIST="True"
-              - export DEPLOY_WHEEL="True"
-              - export BUILD_TEST="True"
-              - export MYPY_DO_TESTS="False"
+              - os: ubuntu-latest
+                python-version: "3.8"
+                env:
+                  BUILD_DOCS: "False"
+                  DEPLOY_SDIST: "True"
+                  DEPLOY_WHEEL: "True"
+                  DEPLOY_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "False"
+                  DO_CLI_TEST: "True"
 
-        - os: linux
-          arch: "ppc64le"
-          if: tag IS present
-          language: python
-          python: "3.9"
-          before_install:
-              - export BUILD_DOCS="False"
-              - export DEPLOY_SDIST="True"
-              - export DEPLOY_WHEEL="True"
-              - export BUILD_TEST="True"
-              - export MYPY_DO_TESTS="True"
+              - os: ubuntu-latest
+                python-version: "3.9"
+                env:
+                  BUILD_DOCS: "False"
+                  DEPLOY_SDIST: "True"
+                  DEPLOY_WHEEL: "True"
+                  DEPLOY_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "False"
+                  DO_CLI_TEST: "True"
 
-        - os: linux
-          arch: "s390x"
-          if: tag IS present
-          language: python
-          python: "3.9"
-          before_install:
-              - export BUILD_DOCS="False"
-              - export DEPLOY_SDIST="True"
-              - export DEPLOY_WHEEL="True"
-              - export BUILD_TEST="True"
-              - export MYPY_DO_TESTS="True"
+              - os: ubuntu-latest
+                python-version: "3.10.0"
+                env:
+                  BUILD_DOCS: "True"
+                  DEPLOY_SDIST: "True"
+                  DEPLOY_WHEEL: "True"
+                  DEPLOY_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "True"
+                  DO_CLI_TEST: "True"
 
-        - os: linux
-          arch: "arm64"
-          if: tag IS present
-          language: python
-          python: "3.9"
-          before_install:
-              - export BUILD_DOCS="False"
-              - export DEPLOY_SDIST="True"
-              - export DEPLOY_WHEEL="True"
-              - export BUILD_TEST="True"
-              - export MYPY_DO_TESTS="True"
+              - os: ubuntu-latest
+                python-version: "pypy-3.8"
+                env:
+                  BUILD_DOCS: "False"
+                  DEPLOY_SDIST: "True"
+                  DEPLOY_WHEEL: "True"
+                  DEPLOY_TEST: "True"
+                  MYPY_DO_TESTS: "False"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "False"
+                  DO_CLI_TEST: "True"
 
-        - os: osx
-          if: true
-          language: sh
-          name: "macOS 10.15.7"
-          python: "3.8"
-          osx_image: xcode12.2
+              - os: macos-latest
+                python-version: 3.9
+                env:
+                  cPREFIX: ""               # prefix before commands - used for wine, there the prefix is "wine"
+                  cPYTHON: "python3"        # command to launch python interpreter (it's different on macOS, there we need python3)
+                  cPIP: "python3 -m pip"    # command to launch pip (it's different on macOS, there we need pip3)
+                  BUILD_DOCS: "False"
+                  DEPLOY_SDIST: "True"
+                  DEPLOY_WHEEL: "True"
+                  DEPLOY_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  # Setup tests
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "True"
+                  # Test registered CLI Command
+                  DO_CLI_TEST: "True"
+
+
+        name: "${{ matrix.os }} Python ${{ matrix.python-version }}"
+
+        steps:
+        # see : https://github.com/actions/checkout
+        - uses: actions/checkout@v2
+
+        - name: Setting up Python ${{ matrix.python-version }}
+          uses: actions/setup-python@v2
+          with:
+            python-version: ${{ matrix.python-version }}
+
+        - name: Install dependencies
+          # see: https://github.community/t/github-actions-new-bug-unable-to-create-environment-variables-based-matrix/16104/3
+          env: ${{ matrix.env }}             # make matrix env variables accessible
+          # lib_cicd_github install: upgrades pip, setuptools, wheel and pytest-pycodestyle
+          run: |
+            ${{ env.cPIP }} install git+https://github.com/bitranox/lib_cicd_github.git
+            lib_cicd_github install
+
+        - name: Debug - printenv and colortest
           env:
-            # on osx pip and python points to python 2.7 - therefore we have to use pip3 and python3 here
-            - cPREFIX=""				# prefix before commands - used for wine, there the prefix is "wine"
-            - cPYTHON="python3"			# command to launch python interpreter (its different on macOs, there we need python3)
-            - cPIP="python3 -m pip"   	# command to launch pip (its different on macOs, there we need pip3)
-            - export BUILD_DOCS="False"
-            - export DEPLOY_SDIST="False"
-            - export DEPLOY_WHEEL="False"
-            - export DEPLOY_TEST="True"
-            - export MYPY_DO_TESTS="True"
+            # make matrix env variables accessible
+            ${{ matrix.env }}
+          shell: bash
+          run: |
+            # export for current step
+            export "BRANCH=$(lib_cicd_github get_branch)"
+            # export for subsequent steps
+            echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+            log_util --level=SPAM  "working on branch $BRANCH"
+            log_util --level=SPAM  "GITHUB_REF $GITHUB_REF"
+            log_util --level=VERBOSE "github.base_ref: ${{ github.base_ref }}"
+            log_util --level=VERBOSE "github.event: ${{ github.event }}"
+            log_util --level=VERBOSE "github.event_name: ${{ github.event_name }}"
+            log_util --level=VERBOSE "github.head_ref: ${{ github.head_ref }}"
+            log_util --level=VERBOSE "github.job: ${{ github.job }}"
+            log_util --level=VERBOSE "github.ref: ${{ github.ref }}"
+            log_util --level=VERBOSE "github.repository: ${{ github.repository }}"
+            log_util --level=VERBOSE "github.repository_owner: ${{ github.repository_owner }}"
+            log_util --level=VERBOSE "runner.os: ${{ runner.os }}"
+            log_util --level=VERBOSE "matrix.python-version: ${{ matrix.python-version }}"
+            printenv
+            log_util --colortest
 
+        - name: Run Tests
+          env:
+            # make matrix env variables accessible
+            ${{ matrix.env }}
+          shell: bash
+          run: |
+            # export for current step
+            export "BRANCH=$(lib_cicd_github get_branch)"
+            # export for subsequent steps
+            echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+            # run the tests
+            lib_cicd_github script
 
-    install:
-        - ${cPIP} install lib_travis
-        - log_util --colortest
-        - lib_travis install
+        - name: After Success
+          env:
+            ${{matrix.env }}
+          shell: bash
+          continue-on-error: true
+          run: |
+            lib_cicd_github after_success
 
-    script:
-        - BRANCH=$(lib_travis get_branch)
-        - log_util --level=NOTICE --banner "working on branch ${BRANCH}"
-        - lib_travis script
-
-    after_success:
-        - lib_travis after_success
-        - lib_travis deploy
-        - ls -l ./dist
-
-    notifications:
-      email:
-        recipients:
-            - bitranox@gmail.com
-        # on_success default: change
-        on_success: never
-        on_failure: always
+        - name: Deploy
+          env:
+            # see: https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#github-context
+            # see : https://github.com/rlespinasse/github-slug-action
+            # make matrix env variables accessible
+            ${{matrix.env }}
+          shell: bash
+          run: |
+            lib_cicd_github deploy
 
 Usage from Commandline
 ------------------------
@@ -702,6 +780,12 @@ Changelog
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
 
+
+v1.0.0
+---------
+2022-03-25:
+ - update documentation and tests
+ - list ./dist dir if existing
 
 v0.0.1
 ---------

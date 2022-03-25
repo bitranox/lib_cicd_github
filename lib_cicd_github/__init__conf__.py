@@ -2,7 +2,7 @@
 
 name = "lib_cicd_github"
 title = "CI/CD (Continuous Integration / Continuous Delivery) - utils for github actions"
-version = "v0.0.1"
+version = "v1.0.0"
 url = "https://github.com/bitranox/lib_cicd_github"
 author = "Robert Nowotny"
 author_email = "bitranox@gmail.com"
@@ -17,7 +17,7 @@ Info for lib_cicd_github:
 
     CI/CD (Continuous Integration / Continuous Delivery) - utils for github actions
 
-    Version : v0.0.1
+    Version : v1.0.0
     Url     : https://github.com/bitranox/lib_cicd_github
     Author  : Robert Nowotny
     Email   : bitranox@gmail.com"""
