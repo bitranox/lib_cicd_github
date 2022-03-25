@@ -476,7 +476,7 @@ python methods:
                   DEPLOY_TEST: "False"
                   MYPY_DO_TESTS: "True"
                   # Setup tests
-                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL: "False"
                   DO_SETUP_INSTALL_TEST: "True"
                   # Test registered CLI Command
                   DO_CLI_TEST: "True"
