@@ -111,7 +111,11 @@ def run(
                         sys.exit(exc.returncode)  # type: ignore
                 sys.exit(1)  # pragma: no cover
         finally:
-            cli_exit_tools.flush_streams()
+            try:
+                # on Windows under github actions we have got "ValueError: underlying buffer has been detached"
+                cli_exit_tools.flush_streams()
+            except ValueError:
+                pass
 
 
 # get_branch{{{
