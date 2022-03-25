@@ -784,6 +784,7 @@ Changelog
 v1.0.0
 ---------
 2022-03-25:
+ - initial pypi release
  - update documentation and tests
  - list ./dist dir if existing
 
