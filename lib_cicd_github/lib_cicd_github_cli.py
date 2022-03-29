@@ -49,14 +49,14 @@ def cli_main(traceback: Optional[bool] = None) -> None:     # type: ignore
         cli_exit_tools.config.traceback = traceback
 
 
-@cli_main.command("info", context_settings=CLICK_CONTEXT_SETTINGS)
+@cli_main.command("info", context_settings=CLICK_CONTEXT_SETTINGS)  # type: ignore
 def cli_info() -> None:     # type: ignore
     """get program informations"""
     info()
 
 
-@cli_main.command("get_branch", context_settings=CLICK_CONTEXT_SETTINGS)
-def cli_get_branch() -> None:     # type: ignore
+@cli_main.command("get_branch", context_settings=CLICK_CONTEXT_SETTINGS)  # type: ignore
+def cli_get_branch() -> None:
     """get the branch to work on"""
     response = lib_cicd_github.get_branch()
     print(response)
