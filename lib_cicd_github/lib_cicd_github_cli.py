@@ -44,13 +44,13 @@ def info() -> None:
     default=None,
     help="return traceback information on cli",
 )
-def cli_main(traceback: Optional[bool] = None) -> None:     # type: ignore
+def cli_main(traceback: Optional[bool] = None) -> None:
     if traceback is not None:
         cli_exit_tools.config.traceback = traceback
 
 
 @cli_main.command("info", context_settings=CLICK_CONTEXT_SETTINGS)  # type: ignore
-def cli_info() -> None:     # type: ignore
+def cli_info() -> None:
     """get program informations"""
     info()
 
@@ -62,41 +62,41 @@ def cli_get_branch() -> None:
     print(response)
 
 
-@cli_main.command("run", context_settings=CLICK_CONTEXT_SETTINGS)
+@cli_main.command("run", context_settings=CLICK_CONTEXT_SETTINGS)  # type: ignore
 @click.option("-r", "--retry", type=int, default=3, help="retry in case of failure, default=3")
 @click.option("-s", "--sleep", type=int, default=30, help="seconds to sleep on repeat, default=30")
 @click.option("--banner/--no-banner", default=True, help="use Banners, default=True")
 @click.argument("description")
 @click.argument("command")
-def cli_run(description: str, command: str, retry: int, sleep: int, banner: bool) -> None:     # type: ignore
+def cli_run(description: str, command: str, retry: int, sleep: int, banner: bool) -> None:
     """run string command wrapped in run/success/error banners"""
     lib_cicd_github.run(description, command, retry=retry, sleep=sleep, banner=banner)
 
 
-@cli_main.command("install", context_settings=CLICK_CONTEXT_SETTINGS)
+@cli_main.command("install", context_settings=CLICK_CONTEXT_SETTINGS)  # type: ignore
 @click.option("--dry-run", is_flag=True, default=False, help="dry run")
-def cli_install(dry_run: bool) -> None:     # type: ignore
+def cli_install(dry_run: bool) -> None:
     """updates pip, setuptools, wheel, pytest-pycodestyle"""
     lib_cicd_github.install(dry_run)
 
 
-@cli_main.command("script", context_settings=CLICK_CONTEXT_SETTINGS)
+@cli_main.command("script", context_settings=CLICK_CONTEXT_SETTINGS)  # type: ignore
 @click.option("--dry-run", is_flag=True, default=False, help="dry run")
-def cli_script(dry_run: bool) -> None:     # type: ignore
+def cli_script(dry_run: bool) -> None:
     """updates pip, setuptools, wheel, pytest-pycodestyle"""
     lib_cicd_github.script(dry_run)
 
 
-@cli_main.command("after_success", context_settings=CLICK_CONTEXT_SETTINGS)
+@cli_main.command("after_success", context_settings=CLICK_CONTEXT_SETTINGS)  # type: ignore
 @click.option("--dry-run", is_flag=True, default=False, help="dry run")
-def cli_after_success(dry_run: bool) -> None:     # type: ignore
+def cli_after_success(dry_run: bool) -> None:
     """coverage reports"""
     lib_cicd_github.after_success(dry_run)
 
 
-@cli_main.command("deploy", context_settings=CLICK_CONTEXT_SETTINGS)
+@cli_main.command("deploy", context_settings=CLICK_CONTEXT_SETTINGS)  # type: ignore
 @click.option("--dry-run", is_flag=True, default=False, help="dry run")
-def cli_deploy(dry_run: bool) -> None:     # type: ignore
+def cli_deploy(dry_run: bool) -> None:
     """deploy on pypi"""
     lib_cicd_github.deploy(dry_run)
 
