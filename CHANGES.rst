@@ -5,6 +5,9 @@ Changelog
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
 
+v1.0.1
+--------
+2022-03-29: remedy mypy Untyped decorator in cli
 
 v1.0.0
 ---------

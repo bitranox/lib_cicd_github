@@ -2,7 +2,7 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.0 as of 2022-03-25 see `Changelog`_
+Version v1.0.1 as of 2022-03-29 see `Changelog`_
 
 |build_badge| |license| |jupyter| |pypi| |pypi-downloads| |black|
 
@@ -780,6 +780,9 @@ Changelog
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
 
+v1.0.1
+--------
+2022-03-29: remedy mypy Untyped decorator in cli
 
 v1.0.0
 ---------
