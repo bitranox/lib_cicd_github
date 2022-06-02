@@ -2,7 +2,7 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.1 as of 2022-03-29 see `Changelog`_
+Version v1.0.1.2 as of 2022-06-02 see `Changelog`_
 
 |build_badge| |license| |jupyter| |pypi| |pypi-downloads| |black|
 
@@ -64,7 +64,7 @@ automated tests, Travis Matrix, Documentation, Badges, etc. are managed with `Pi
 
 Python version required: 3.6.0 or newer
 
-tested on recent linux with python 3.6, 3.7, 3.8, 3.9, 3.10.0, pypy-3.8 - architectures: amd64
+tested on recent linux with python 3.6, 3.7, 3.8, 3.9, 3.10, pypy-3.8 - architectures: amd64
 
 `100% code coverage <https://codecov.io/gh/bitranox/lib_cicd_github>`_, flake8 style checking ,mypy static type checking ,tested under `Linux, macOS, Windows <https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml>`_, automatic daily builds and monitoring
 
@@ -467,7 +467,7 @@ python methods:
               # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-software
 
               - os: windows-latest
-                python-version: 3.9
+                python-version: "3.10"
                 env:
                   cEXPORT: "SET"
                   BUILD_DOCS: "False"
@@ -531,7 +531,7 @@ python methods:
                   DO_CLI_TEST: "True"
 
               - os: ubuntu-latest
-                python-version: "3.10.0"
+                python-version: "3.10"
                 env:
                   BUILD_DOCS: "True"
                   DEPLOY_SDIST: "True"
@@ -555,7 +555,7 @@ python methods:
                   DO_CLI_TEST: "True"
 
               - os: macos-latest
-                python-version: 3.9
+                python-version: "3.10"
                 env:
                   cPREFIX: ""               # prefix before commands - used for wine, there the prefix is "wine"
                   cPYTHON: "python3"        # command to launch python interpreter (it's different on macOS, there we need python3)
@@ -576,10 +576,10 @@ python methods:
 
         steps:
         # see : https://github.com/actions/checkout
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v3
 
         - name: Setting up Python ${{ matrix.python-version }}
-          uses: actions/setup-python@v2
+          uses: actions/setup-python@v3
           with:
             python-version: ${{ matrix.python-version }}
 
@@ -779,6 +779,10 @@ Changelog
 - new MAJOR version for incompatible API changes,
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
+
+v1.0.1.2
+---------
+2022-06-02: update to github actions checkout@v3 and setup-python@v3
 
 v1.0.1
 --------

@@ -2,7 +2,7 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.1 as of 2022-03-29 see `Changelog`_
+Version v1.0.1.2 as of 2022-06-02 see `Changelog`_
 
 
 .. include:: ./badges.rst
