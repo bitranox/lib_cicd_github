@@ -11,7 +11,6 @@ from typing import List
 import lib_log_utils
 import cli_exit_tools
 
-
 # run{{{
 def run(
     description: str,
@@ -561,8 +560,7 @@ def remove_eggs() -> None:
     """ .egg files not accepted after 2028-08-01 on pypy """
     file_paths_to_delete_str = glob.glob('./dist/*.egg')
     for file_path_str in file_paths_to_delete_str:
-        file_path = pathlib.Path(file_path_str)
-        file_path.unlink(missing_ok=True)
+        os.remove(file_path_str)
 
 
 def get_pip_prefix() -> str:
