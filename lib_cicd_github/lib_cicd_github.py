@@ -1,4 +1,5 @@
 # STDLIB
+import glob
 import os
 import pathlib
 import subprocess
@@ -399,6 +400,8 @@ def script(dry_run: bool = True) -> None:
         lib_log_utils.banner_spam("create wheel distribution is disabled on this build")
 
     if do_deploy_sdist() or do_deploy_wheel() or do_build_test():
+        # .egg files not accepted after 2028-08-01 on pypy
+        remove_eggs()
         run(
             description="check distributions",
             command=" ".join([command_prefix, "twine check dist/*"]),
@@ -552,6 +555,14 @@ def list_dist_directory() -> None:
         run(description="list ./dist directory", command=f"{command_prefix} ls -l ./dist")
     else:
         lib_log_utils.banner_warning('no "./dist" directory found')
+
+
+def remove_eggs() -> None:
+    """ .egg files not accepted after 2028-08-01 on pypy """
+    file_paths_to_delete_str = glob.glob('./dist/*.egg')
+    for file_path_str in file_paths_to_delete_str:
+        file_path = pathlib.Path(file_path_str)
+        file_path.unlink(missing_ok=True)
 
 
 def get_pip_prefix() -> str:
