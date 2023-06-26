@@ -504,8 +504,6 @@ def deploy(dry_run: bool = True) -> None:
         from environment, the command prefix like 'wine' or ''
     PYPI_PASSWORD
         from environment, passed as secure, encrypted variable to environment
-    TRAVIS_TAG
-        from environment, needs to be set
     DEPLOY_SDIST, DEPLOY_WHEEL
         from environment, one of it needs to be true
     dry_run
