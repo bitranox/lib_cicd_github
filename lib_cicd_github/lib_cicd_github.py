@@ -1,5 +1,5 @@
 # STDLIB
-import glob
+from functools import lru_cache
 import os
 import pathlib
 import subprocess
@@ -355,40 +355,11 @@ def script(dry_run: bool = True) -> None:
     else:
         lib_log_utils.banner_spam("rebuild doc file is disabled on this build")
 
-    '''
-    if do_deploy_sdist() or do_build_test():
-        run(
-            description="create source distribution",
-            command=" ".join([python_prefix, "setup.py sdist"]),
-        )
-    else:
-        lib_log_utils.banner_spam("create source distribution is disabled on this build")
-
-    if do_deploy_wheel() or do_build_test():
-        run(
-            description="create binary distribution (wheel)",
-            command=" ".join([python_prefix, "setup.py bdist_wheel"]),
-        )
-    else:
-        lib_log_utils.banner_spam("create wheel distribution is disabled on this build")
-
-    if do_deploy_sdist() or do_deploy_wheel() or do_build_test():
-        # .egg files not accepted after 2028-08-01 on pypy
-        remove_eggs()
-    '''
     if do_build() or do_build_test():
         run(
             description="upgrade building system",
             command=" ".join([pip_prefix, "install --upgrade build"]),
         )
-
-        '''
-        # todo: WIP, delete me ?
-        run(
-            description="upgrade wheel",
-            command=" ".join([pip_prefix, "install --upgrade wheel"]),
-        )
-        '''
 
         run(
             description="upgrade twine",
@@ -521,8 +492,6 @@ def deploy(dry_run: bool = True) -> None:
 
     if dry_run:
         return
-    command_prefix = get_env_data("cPREFIX")
-    github_username = get_github_username()
     pypi_password = get_env_data("PYPI_PASSWORD").strip()
     if not pypi_password:
         lib_log_utils.banner_warning("can not deploy, because secret PYPI_PASSWORD is missing")
@@ -532,9 +501,9 @@ def deploy(dry_run: bool = True) -> None:
                 description="upload to pypi",
                 command=" ".join(
                     [
-                        command_prefix,
-                        "twine upload --repository-url https://upload.pypi.org/legacy/ -u",
-                        github_username,
+                        get_python_prefix(),
+                        "-m twine upload --repository-url https://upload.pypi.org/legacy/ -u",
+                        get_github_username(),
                         "-p",
                         pypi_password,
                         "--skip-existing",
@@ -547,6 +516,30 @@ def deploy(dry_run: bool = True) -> None:
         lib_log_utils.banner_spam("pypi deploy is disabled on this build")
 
 
+'''
+                command=" ".join(
+                    [
+                        command_prefix,
+                        "twine upload --repository-url https://upload.pypi.org/legacy/ -u",
+                        github_username,
+                        "-p",
+                        pypi_password,
+                        "--skip-existing",
+                        "dist/*",
+                    ]
+                ),
+
+'''
+
+'''
+        run(
+            description="check distributions",
+            command=" ".join([python_prefix, "-m twine check dist/*"]),
+        )
+
+'''
+
+
 def list_dist_directory() -> None:
     """dir the dist directory if exists"""
     command_prefix = get_env_data("cPREFIX")
@@ -556,13 +549,7 @@ def list_dist_directory() -> None:
         lib_log_utils.banner_warning('no "./dist" directory found')
 
 
-def remove_eggs() -> None:
-    """ .egg files not accepted after 2028-08-01 on pypy """
-    file_paths_to_delete_str = glob.glob('./dist/*.egg')
-    for file_path_str in file_paths_to_delete_str:
-        os.remove(file_path_str)
-
-
+@lru_cache(maxsize=None)
 def get_pip_prefix() -> str:
     """
     get the pip_prefix including the command prefix like : 'wine python -m pip'
@@ -578,11 +565,12 @@ def get_pip_prefix() -> str:
     return command_prefix
 
 
+@lru_cache(maxsize=None)
 def get_python_prefix() -> str:
     """
     get the python_prefix including the command prefix like : 'wine python'
 
-    >>> if 'TRAVIS' in os.environ:
+    >>> if 'cPREFIX' in os.environ:
     ...    discard = get_python_prefix()
 
     """
@@ -593,6 +581,7 @@ def get_python_prefix() -> str:
     return python_prefix
 
 
+@lru_cache(maxsize=None)
 def get_github_username() -> str:
     """
     get the github username like 'bitranox' (the OWNER of the Repository !)
