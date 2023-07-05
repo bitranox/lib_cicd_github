@@ -396,12 +396,12 @@ def script(dry_run: bool = True) -> None:
 
         run(
             description="build wheel and sdist",
-            command=" ".join([command_prefix, "build"]),
+            command=" ".join([command_prefix, "-m build"]),
         )
 
         run(
             description="check distributions",
-            command=" ".join([command_prefix, "twine check dist/*"]),
+            command=" ".join([command_prefix, "-m twine check dist/*"]),
         )
 
         list_dist_directory()
