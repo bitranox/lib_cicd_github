@@ -245,10 +245,17 @@ def install(dry_run: bool = True) -> None:
         command=" ".join([pip_prefix, "install --upgrade setuptools"]),
     )
 
-    run(
-        description="install package in editable(develop) mode",
-        command=" ".join([pip_prefix, "install --editable .[test]"]),
-    )
+    if do_setup_py():
+        run(
+            description="install package",
+            command=" ".join([pip_prefix, "install ."]),
+        )
+
+    if do_setup_py_test():
+        run(
+            description="install package in editable(develop) mode",
+            command=" ".join([pip_prefix, "install --editable .[test]"]),
+        )
 
 
 # script{{{
@@ -308,7 +315,7 @@ def script(dry_run: bool = True) -> None:
     command_prefix = get_env_data("cPREFIX")
     package_name = get_env_data("PACKAGE_NAME")
     python_prefix = get_python_prefix()
-    # pip_prefix = get_pip_prefix()
+    pip_prefix = get_pip_prefix()
 
     if do_flake8_tests():
         run(description="flake8 tests", command=f"{python_prefix} -m flake8 --statistics --benchmark")
@@ -331,16 +338,6 @@ def script(dry_run: bool = True) -> None:
     else:
         lib_log_utils.banner_spam("pytest disabled on this build")
 
-    '''
-    # todo : deprecated delete me PEP517
-    if do_setup_py_test():
-        run(description="setup.py test", command=f"{python_prefix} ./setup.py test")
-
-    # todo : deprecated delete me PEP517
-    if do_setup_py():
-        run(description="setup.py install", command=f"{python_prefix} ./setup.py install")
-    '''
-
     if do_check_cli():
         cli_command = get_env_data("CLI_COMMAND")
         run(description="check CLI command", command=f"{command_prefix} {cli_command} --version")
@@ -357,6 +354,7 @@ def script(dry_run: bool = True) -> None:
     else:
         lib_log_utils.banner_spam("rebuild doc file is disabled on this build")
 
+    '''
     if do_deploy_sdist() or do_build_test():
         run(
             description="create source distribution",
@@ -376,10 +374,36 @@ def script(dry_run: bool = True) -> None:
     if do_deploy_sdist() or do_deploy_wheel() or do_build_test():
         # .egg files not accepted after 2028-08-01 on pypy
         remove_eggs()
+    '''
+    if do_build() or do_build_test():
+        run(
+            description="upgrade building system",
+            command=" ".join([pip_prefix, "install --upgrade build"]),
+        )
+
+        '''
+        # todo: WIP, delete me ?
+        run(
+            description="upgrade wheel",
+            command=" ".join([pip_prefix, "install --upgrade wheel"]),
+        )
+        '''
+
+        run(
+            description="upgrade twine",
+            command=" ".join([pip_prefix, "install --upgrade twine"]),
+        )
+
+        run(
+            description="build wheel and sdist",
+            command=" ".join([command_prefix, "build"]),
+        )
+
         run(
             description="check distributions",
             command=" ".join([command_prefix, "twine check dist/*"]),
         )
+
         list_dist_directory()
 
 
@@ -820,65 +844,6 @@ def do_build_docs() -> bool:
         return True
 
 
-def do_deploy_sdist() -> bool:
-    """
-    if we should deploy sdist
-
-
-    Parameter
-    ---------
-    DEPLOY_SDIST
-        from environment
-
-    Examples:
-
-    >>> # Setup
-    >>> save_deploy_sdist = get_env_data('DEPLOY_SDIST')
-
-    >>> # DEPLOY_SDIST != 'true'
-    >>> os.environ['DEPLOY_SDIST'] = 'false'
-    >>> assert False == do_deploy_sdist()
-
-    >>> # DEPLOY_SDIST == 'true'
-    >>> os.environ['DEPLOY_SDIST'] = 'True'
-    >>> assert True == do_deploy_sdist()
-
-    >>> # Teardown
-    >>> set_env_data('DEPLOY_SDIST', save_deploy_sdist)
-
-    """
-    return get_env_data("DEPLOY_SDIST").lower() == "true"
-
-
-def do_deploy_wheel() -> bool:
-    """
-    if we should deploy wheels
-
-    Parameter
-    ---------
-    DEPLOY_WHEEL
-        from environment
-
-    Examples:
-
-    >>> # Setup
-    >>> save_deploy_wheel = get_env_data('DEPLOY_WHEEL')
-
-    >>> # DEPLOY_WHEEL != 'true'
-    >>> os.environ['DEPLOY_WHEEL'] = 'false'
-    >>> assert not do_deploy_wheel()
-
-    >>> # DEPLOY_WHEEL == 'true'
-    >>> os.environ['DEPLOY_WHEEL'] = 'True'
-    >>> assert do_deploy_wheel()
-
-    >>> # Teardown
-    >>> set_env_data('DEPLOY_WHEEL', save_deploy_wheel)
-
-    """
-    return get_env_data("DEPLOY_WHEEL").lower() == "true"
-
-
 def do_flake8_tests() -> bool:
     """
     if we should do flake8 tests
@@ -911,6 +876,41 @@ def do_flake8_tests() -> bool:
 
     """
     if os.getenv("DO_FLAKE8_TESTS", "").lower() == "true":
+        return True
+    else:
+        return False
+
+
+def do_build() -> bool:
+    """
+    if a build (sdist and wheel) should be done
+
+    Parameter
+    ---------
+    BUILD
+        from environment
+
+    Examples:
+
+    >>> # Setup
+    >>> save_build = os.getenv('BUILD')
+
+    >>> # BUILD_TEST != 'True'
+    >>> os.environ['BUILD'] = 'false'
+    >>> assert not do_build()
+
+    >>> # BUILD_TEST == 'true'
+    >>> os.environ['BUILD'] = 'True'
+    >>> assert do_build()
+
+    >>> # Teardown
+    >>> if save_build is None:
+    ...     os.unsetenv('BUILD')
+    ... else:
+    ...     os.environ['BUILD'] = save_build
+
+    """
+    if os.getenv("BUILD", "").lower() == "true":
         return True
     else:
         return False
@@ -1086,8 +1086,7 @@ def do_deploy() -> bool:
 
     >>> # Setup
     >>> save_github_event_name = get_env_data('GITHUB_EVENT_NAME')
-    >>> save_deploy_sdist = get_env_data('DEPLOY_SDIST')
-    >>> save_deploy_wheel = get_env_data('DEPLOY_WHEEL')
+    >>> save_build = get_env_data('BUILD')
 
     >>> # no Tagged Commit
     >>> set_env_data('GITHUB_EVENT_NAME', 'push')
@@ -1095,22 +1094,19 @@ def do_deploy() -> bool:
 
     >>> # Tagged Commit, DEPLOY_SDIST, DEPLOY_WHEEL != True
     >>> set_env_data('GITHUB_EVENT_NAME', 'release')
-    >>> set_env_data('DEPLOY_SDIST', '')
-    >>> set_env_data('DEPLOY_WHEEL', '')
+    >>> set_env_data('BUILD', '')
     >>> assert False == do_deploy()
 
     >>> # Tagged Commit, DEPLOY_SDIST == True
     >>> set_env_data('GITHUB_EVENT_NAME', 'release')
-    >>> set_env_data('DEPLOY_SDIST', 'True')
-    >>> set_env_data('DEPLOY_WHEEL', '')
+    >>> set_env_data('BUILD', 'True')
     >>> assert True == do_deploy()
 
     >>> # Teardown
     >>> set_env_data('GITHUB_EVENT_NAME', save_github_event_name)
-    >>> set_env_data('DEPLOY_SDIST', save_deploy_sdist)
-    >>> set_env_data('DEPLOY_WHEEL', save_deploy_wheel)
+    >>> set_env_data('BUILD', save_build)
     """
-    return (do_deploy_sdist() or do_deploy_wheel()) and is_release()
+    return do_build() and is_release()
 
 
 def is_release() -> bool:
