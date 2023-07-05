@@ -245,6 +245,11 @@ def install(dry_run: bool = True) -> None:
         command=" ".join([pip_prefix, "install --upgrade setuptools"]),
     )
 
+    run(
+        description="install package in editable(develop) mode",
+        command=" ".join([pip_prefix, "install --editable .[test]"]),
+    )
+
     # todo PEP517 installer WIP delete me
     run(
         description="install requirements",
