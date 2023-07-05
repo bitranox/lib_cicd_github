@@ -250,16 +250,6 @@ def install(dry_run: bool = True) -> None:
         command=" ".join([pip_prefix, "install --editable .[test]"]),
     )
 
-    # todo PEP517 installer WIP delete me
-    run(
-        description="install requirements",
-        command=" ".join([pip_prefix, "install --upgrade -r ./requirements.txt"]),
-    )
-    run(
-        description="install test requirements",
-        command=" ".join([pip_prefix, "install --upgrade -r ./requirements_test.txt"]),
-    )
-
 
 # script{{{
 def script(dry_run: bool = True) -> None:
@@ -341,25 +331,15 @@ def script(dry_run: bool = True) -> None:
     else:
         lib_log_utils.banner_spam("pytest disabled on this build")
 
-    """
-    # this takes a long time - we did not implement atm
-    if do_pip_install_option_test():
-        # pip install git+https://github.com/bitranox/cli_exit_tools.git@development
-        run(description='pip install --install-option test', command=f'{pip_prefix} install {repository} --install-option test')
-    """
-
-    """
-    # we dont need to test it
-    if do_pip_install():
-        # pip install git+https://github.com/bitranox/cli_exit_tools.git@development
-        run(description='pip standard install', command=' '.join([pip_prefix, 'install', repository]))
-    """
-
+    '''
+    # todo : deprecated delete me PEP517
     if do_setup_py_test():
         run(description="setup.py test", command=f"{python_prefix} ./setup.py test")
 
+    # todo : deprecated delete me PEP517
     if do_setup_py():
         run(description="setup.py install", command=f"{python_prefix} ./setup.py install")
+    '''
 
     if do_check_cli():
         cli_command = get_env_data("CLI_COMMAND")
