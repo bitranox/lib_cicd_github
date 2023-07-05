@@ -245,17 +245,18 @@ def install(dry_run: bool = True) -> None:
         command=" ".join([pip_prefix, "install --upgrade setuptools"]),
     )
 
-    if do_setup_py():
-        run(
-            description="install package",
-            command=" ".join([pip_prefix, "install ."]),
-        )
-
     if do_setup_py_test():
         run(
             description="install package in editable(develop) mode",
             command=" ".join([pip_prefix, "install --editable .[test]"]),
         )
+    elif do_setup_py():
+        run(
+            description="install package",
+            command=" ".join([pip_prefix, "install ."]),
+        )
+    else:
+        lib_log_utils.banner_spam("package will be not installed")
 
 
 # script{{{
