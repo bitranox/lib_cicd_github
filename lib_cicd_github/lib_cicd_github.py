@@ -120,6 +120,7 @@ def run(
 
 
 # get_branch{{{
+@lru_cache(maxsize=None)
 def get_branch() -> str:
     """
     Returns the branch to work on :
@@ -156,41 +157,48 @@ def get_branch() -> str:
     >>> github_ref_backup = get_env_data('GITHUB_REF')
     >>> github_head_ref_backup = get_env_data('GITHUB_HEAD_REF')
     >>> github_event_name_backup = get_env_data('GITHUB_EVENT_NAME')
+    >>> clear_all_caches()
 
     >>> # test Push
     >>> set_env_data('GITHUB_REF', 'refs/heads/development')
     >>> set_env_data('GITHUB_HEAD_REF', '')
     >>> set_env_data('GITHUB_EVENT_NAME', 'push')
     >>> assert get_branch() == 'development'
+    >>> clear_all_caches()
 
     >>> # test Push without github.ref
     >>> set_env_data('GITHUB_REF', '')
     >>> set_env_data('GITHUB_HEAD_REF', '')
     >>> set_env_data('GITHUB_EVENT_NAME', 'push')
     >>> assert get_branch() == 'unknown branch, event=push'
+    >>> clear_all_caches()
 
     >>> # test PR
     >>> set_env_data('GITHUB_REF', 'refs/pull/xx/merge')
     >>> set_env_data('GITHUB_HEAD_REF', 'master')
     >>> set_env_data('GITHUB_EVENT_NAME', 'pull_request')
     >>> assert get_branch() == 'master'
+    >>> clear_all_caches()
 
     >>> # test Publish
     >>> set_env_data('GITHUB_REF', 'refs/tags/v1.1.15')
     >>> set_env_data('GITHUB_HEAD_REF', '')
     >>> set_env_data('GITHUB_EVENT_NAME', 'release')
     >>> assert get_branch() == 'release'
+    >>> clear_all_caches()
 
     >>> # test unknown event_name
     >>> set_env_data('GITHUB_REF', '')
     >>> set_env_data('GITHUB_HEAD_REF', '')
     >>> set_env_data('GITHUB_EVENT_NAME', 'unknown_event')
     >>> assert get_branch() == 'unknown branch, event=unknown_event'
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> set_env_data('GITHUB_REF', github_ref_backup)
     >>> set_env_data('GITHUB_HEAD_REF', github_head_ref_backup)
     >>> set_env_data('GITHUB_EVENT_NAME', github_event_name_backup)
+    >>> clear_all_caches()
 
     """
     # get_branch}}}
@@ -228,6 +236,9 @@ def install(dry_run: bool = True) -> None:
     Examples
     --------
 
+    >>> # Setup
+    >>> clear_all_caches()
+    >>> # Test
     >>> if is_github_actions_active():
     ...     install(dry_run=True)
 
@@ -306,6 +317,9 @@ def script(dry_run: bool = True) -> None:
 
     Examples
     --------
+    >>> # setup
+    >>> clear_all_caches()
+    >>> # test
     >>> script()
 
     """
@@ -404,6 +418,9 @@ def after_success(dry_run: bool = True) -> None:
 
     Examples
     --------
+    >>> # setup
+    >>> clear_all_caches()
+    >>> # test
     >>> after_success()
 
     """
@@ -485,6 +502,9 @@ def deploy(dry_run: bool = True) -> None:
 
     Examples
     --------
+    >>> # setup
+    >>> clear_all_caches()
+    >>> # test
     >>> deploy()
 
     """
@@ -554,8 +574,13 @@ def get_pip_prefix() -> str:
     """
     get the pip_prefix including the command prefix like : 'wine python -m pip'
 
-    >>> if 'TRAVIS' in os.environ:
+    >>> # setup
+    >>> clear_all_caches()
+    >>> # test
+    >>> if 'cPREFIX' in os.environ:
     ...    discard = get_pip_prefix()
+    >>> # teardown
+    >>> clear_all_caches()
 
     """
     c_parts: List[str] = list()
@@ -570,8 +595,12 @@ def get_python_prefix() -> str:
     """
     get the python_prefix including the command prefix like : 'wine python'
 
+    >>> # setup
+    >>> clear_all_caches()
+    >>> # test
     >>> if 'cPREFIX' in os.environ:
     ...    discard = get_python_prefix()
+    >>> clear_all_caches()
 
     """
     c_parts: List[str] = list()
@@ -586,12 +615,17 @@ def get_github_username() -> str:
     """
     get the github username like 'bitranox' (the OWNER of the Repository !)
 
+    >>> # setup
+    >>> clear_all_caches()
+    >>> # test
     >>> discard = get_github_username()
+    >>> clear_all_caches()
 
     """
     return get_env_data("GITHUB_REPOSITORY_OWNER")
 
 
+@lru_cache(maxsize=None)
 def do_mypy_tests() -> bool:
     """
     if mypy should be run
@@ -605,21 +639,24 @@ def do_mypy_tests() -> bool:
 
     >>> # Setup
     >>> save_do_mypy = os.getenv('MYPY_DO_TESTS')
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST != 'True'
     >>> os.environ['MYPY_DO_TESTS'] = 'false'
     >>> assert not do_mypy_tests()
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST == 'true'
     >>> os.environ['MYPY_DO_TESTS'] = 'True'
     >>> assert do_mypy_tests()
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> if save_do_mypy is None:
     ...     os.unsetenv('MYPY_DO_TESTS')
     ... else:
     ...     os.environ['MYPY_DO_TESTS'] = save_do_mypy
-
+    >>> clear_all_caches()
     """
 
     if os.getenv("MYPY_DO_TESTS", "").lower() == "true":
@@ -628,6 +665,7 @@ def do_mypy_tests() -> bool:
         return False
 
 
+@lru_cache(maxsize=None)
 def do_pytest() -> bool:
     """
     if pytest should be run
@@ -641,21 +679,24 @@ def do_pytest() -> bool:
 
     >>> # Setup
     >>> save_do_pytest = os.getenv('PYTEST_DO_TESTS')
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST != 'True'
     >>> os.environ['PYTEST_DO_TESTS'] = 'false'
     >>> assert not do_pytest()
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST == 'true'
     >>> os.environ['PYTEST_DO_TESTS'] = 'True'
     >>> assert do_pytest()
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> if save_do_pytest is None:
     ...     os.unsetenv('PYTEST_DO_TESTS')
     ... else:
     ...     os.environ['PYTEST_DO_TESTS'] = save_do_pytest
-
+    >>> clear_all_caches()
     """
     if os.getenv("PYTEST_DO_TESTS", "").lower() == "true":
         return True
@@ -663,6 +704,7 @@ def do_pytest() -> bool:
         return False
 
 
+@lru_cache(maxsize=None)
 def do_coverage() -> bool:
     """
     if coverage should be run (via pytest)
@@ -676,25 +718,30 @@ def do_coverage() -> bool:
 
     >>> # Setup
     >>> save_do_coverage = os.getenv('DO_COVERAGE')
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST != 'True'
     >>> os.environ['DO_COVERAGE'] = 'false'
     >>> assert not do_coverage()
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST == 'true'
     >>> os.environ['DO_COVERAGE'] = 'True'
     >>> assert do_coverage()
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> if save_do_coverage is None:
     ...     os.unsetenv('DO_COVERAGE')
     ... else:
     ...     os.environ['DO_COVERAGE'] = save_do_coverage
+    >>> clear_all_caches()
 
     """
     return get_env_data("DO_COVERAGE").lower() == "true"
 
 
+@lru_cache(maxsize=None)
 def do_upload_codecov() -> bool:
     """
     if code coverage should be uploaded to codecov
@@ -708,25 +755,30 @@ def do_upload_codecov() -> bool:
 
     >>> # Setup
     >>> save_upload_codecov = os.getenv('DO_COVERAGE_UPLOAD_CODECOV')
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST != 'True'
     >>> os.environ['DO_COVERAGE_UPLOAD_CODECOV'] = 'false'
     >>> assert not do_upload_codecov()
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST == 'true'
     >>> os.environ['DO_COVERAGE_UPLOAD_CODECOV'] = 'True'
     >>> assert do_upload_codecov()
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> if save_upload_codecov is None:
     ...     os.unsetenv('DO_COVERAGE_UPLOAD_CODECOV')
     ... else:
     ...     os.environ['DO_COVERAGE_UPLOAD_CODECOV'] = save_upload_codecov
+    >>> clear_all_caches()
 
     """
     return get_env_data("DO_COVERAGE_UPLOAD_CODECOV").lower() == "true"
 
 
+@lru_cache(maxsize=None)
 def do_upload_code_climate() -> bool:
     """
     if code coverage should be uploaded to code climate
@@ -740,37 +792,44 @@ def do_upload_code_climate() -> bool:
 
     >>> # Setup
     >>> save_upload_code_climate = os.getenv('DO_COVERAGE_UPLOAD_CODE_CLIMATE')
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST != 'True'
     >>> os.environ['DO_COVERAGE_UPLOAD_CODE_CLIMATE'] = 'false'
     >>> assert not do_upload_code_climate()
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST == 'true'
     >>> os.environ['DO_COVERAGE_UPLOAD_CODE_CLIMATE'] = 'True'
     >>> assert do_upload_code_climate()
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> if save_upload_code_climate is None:
     ...     os.unsetenv('DO_COVERAGE_UPLOAD_CODE_CLIMATE')
     ... else:
     ...     os.environ['DO_COVERAGE_UPLOAD_CODE_CLIMATE'] = save_upload_code_climate
-
+    >>> clear_all_caches()
     """
     return get_env_data("DO_COVERAGE_UPLOAD_CODE_CLIMATE").lower() == "true"
 
 
+@lru_cache(maxsize=None)
 def do_setup_py() -> bool:
     return get_env_data("DO_SETUP_INSTALL").lower() == "true"
 
 
+@lru_cache(maxsize=None)
 def do_setup_py_test() -> bool:
     return get_env_data("DO_SETUP_INSTALL_TEST").lower() == "true"
 
 
+@lru_cache(maxsize=None)
 def do_check_cli() -> bool:
     return get_env_data("DO_CLI_TEST").lower() == "true"
 
 
+@lru_cache(maxsize=None)
 def do_build_docs() -> bool:
     """
     if README.rst should be rebuilt
@@ -791,36 +850,41 @@ def do_build_docs() -> bool:
     >>> save_build_docs = get_env_data('BUILD_DOCS')
     >>> save_rst_include_source = get_env_data('RST_INCLUDE_SOURCE')
     >>> save_rst_include_target = get_env_data('RST_INCLUDE_TARGET')
+    >>> clear_all_caches()
 
     >>> # BUILD_DOCS != 'true'
     >>> set_env_data('BUILD_DOCS', 'false')
     >>> set_env_data('RST_INCLUDE_SOURCE', '')
     >>> set_env_data('RST_INCLUDE_TARGET', '')
     >>> assert do_build_docs() == False
+    >>> clear_all_caches()
 
     >>> # BUILD_DOCS == 'true', no source, no target
     >>> set_env_data('BUILD_DOCS', 'true')
     >>> set_env_data('RST_INCLUDE_SOURCE', '')
     >>> set_env_data('RST_INCLUDE_TARGET', '')
     >>> assert do_build_docs() == False
+    >>> clear_all_caches()
 
     >>> # BUILD_DOCS == 'true', no source
     >>> set_env_data('BUILD_DOCS', 'true')
     >>> set_env_data('RST_INCLUDE_SOURCE', '')
     >>> set_env_data('RST_INCLUDE_TARGET', 'some_target')
     >>> assert do_build_docs() == False
+    >>> clear_all_caches()
 
     >>> # BUILD_DOCS == 'true', source and target
     >>> set_env_data('BUILD_DOCS', 'true')
     >>> set_env_data('RST_INCLUDE_SOURCE', 'some_source')
     >>> set_env_data('RST_INCLUDE_TARGET', 'some_target')
     >>> assert do_build_docs() == True
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> set_env_data('BUILD_DOCS', save_build_docs)
     >>> set_env_data('RST_INCLUDE_SOURCE', save_rst_include_source)
     >>> set_env_data('RST_INCLUDE_TARGET', save_rst_include_target)
-
+    >>> clear_all_caches()
     """
     if get_env_data("BUILD_DOCS").lower() != "true":
         return False
@@ -834,6 +898,7 @@ def do_build_docs() -> bool:
         return True
 
 
+@lru_cache(maxsize=None)
 def do_flake8_tests() -> bool:
     """
     if we should do flake8 tests
@@ -847,23 +912,24 @@ def do_flake8_tests() -> bool:
 
     >>> # Setup
     >>> save_flake8_test = os.getenv('DO_FLAKE8_TESTS')
+    >>> clear_all_caches()
 
     >>> # DO_FLAKE8_TESTS != 'true'
     >>> os.environ['DO_FLAKE8_TESTS'] = 'false'
     >>> assert not do_flake8_tests()
+    >>> clear_all_caches()
 
     >>> # DO_FLAKE8_TESTS == 'true'
     >>> os.environ['DO_FLAKE8_TESTS'] = 'True'
     >>> assert do_flake8_tests()
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> if save_flake8_test is None:
     ...     os.unsetenv('DO_FLAKE8_TESTS')
     ... else:
     ...     os.environ['DO_FLAKE8_TESTS'] = save_flake8_test
-
-
-
+    >>> clear_all_caches()
     """
     if os.getenv("DO_FLAKE8_TESTS", "").lower() == "true":
         return True
@@ -871,6 +937,7 @@ def do_flake8_tests() -> bool:
         return False
 
 
+@lru_cache(maxsize=None)
 def do_build() -> bool:
     """
     if a build (sdist and wheel) should be done
@@ -884,21 +951,24 @@ def do_build() -> bool:
 
     >>> # Setup
     >>> save_build = os.getenv('BUILD')
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST != 'True'
     >>> os.environ['BUILD'] = 'false'
     >>> assert not do_build()
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST == 'true'
     >>> os.environ['BUILD'] = 'True'
     >>> assert do_build()
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> if save_build is None:
     ...     os.unsetenv('BUILD')
     ... else:
     ...     os.environ['BUILD'] = save_build
-
+    >>> clear_all_caches()
     """
     if os.getenv("BUILD", "").lower() == "true":
         return True
@@ -906,6 +976,7 @@ def do_build() -> bool:
         return False
 
 
+@lru_cache(maxsize=None)
 def do_build_test() -> bool:
     """
     if a build should be created for test purposes
@@ -919,21 +990,24 @@ def do_build_test() -> bool:
 
     >>> # Setup
     >>> save_build_test = os.getenv('BUILD_TEST')
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST != 'True'
     >>> os.environ['BUILD_TEST'] = 'false'
     >>> assert not do_build_test()
+    >>> clear_all_caches()
 
     >>> # BUILD_TEST == 'true'
     >>> os.environ['BUILD_TEST'] = 'True'
     >>> assert do_build_test()
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> if save_build_test is None:
     ...     os.unsetenv('BUILD_TEST')
     ... else:
     ...     os.environ['BUILD_TEST'] = save_build_test
-
+    >>> clear_all_caches()
     """
     if os.getenv("BUILD_TEST", "").lower() == "true":
         return True
@@ -941,6 +1015,7 @@ def do_build_test() -> bool:
         return False
 
 
+@lru_cache(maxsize=None)
 def is_pypy3() -> bool:
     """
     if it is a pypy3 build
@@ -954,21 +1029,25 @@ def is_pypy3() -> bool:
 
     >>> # Setup
     >>> save_python_version = get_env_data('matrix.python-version')
+    >>> clear_all_caches()
 
     >>> # Test
     >>> set_env_data('matrix.python-version', 'pypy-3.7')
     >>> assert is_pypy3() == True
+    >>> clear_all_caches()
 
     >>> set_env_data('matrix.python-version', '3.9')
     >>> assert is_pypy3() == False
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> set_env_data('matrix.python-version', save_python_version)
-
+    >>> clear_all_caches()
     """
     return get_env_data("matrix.python-version").lower().startswith("pypy-3")
 
 
+@lru_cache(maxsize=None)
 def is_ci_runner_os_windows() -> bool:
     """
     if the ci runner os is windows
@@ -982,23 +1061,26 @@ def is_ci_runner_os_windows() -> bool:
 
     >>> # Setup
     >>> save_gha_os_name = get_env_data('RUNNER_OS')
+    >>> clear_all_caches()
 
     >>> # runner.os == 'linux'
     >>> set_env_data('RUNNER_OS', 'Linux')
     >>> assert is_ci_runner_os_windows() == False
+    >>> clear_all_caches()
 
     >>> # TRAVIS_OS_NAME == 'windows'
     >>> set_env_data('RUNNER_OS', 'Windows')
     >>> assert is_ci_runner_os_windows() == True
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> set_env_data('RUNNER_OS', save_gha_os_name)
-
-
+    >>> clear_all_caches()
     """
     return get_env_data("RUNNER_OS").lower() == "windows"
 
 
+@lru_cache(maxsize=None)
 def is_ci_runner_os_linux() -> bool:
     """
     if the ci runner os is linux
@@ -1012,22 +1094,26 @@ def is_ci_runner_os_linux() -> bool:
 
     >>> # Setup
     >>> save_gha_os_name = get_env_data('RUNNER_OS')
+    >>> clear_all_caches()
 
     >>> # runner.os == 'linux'
     >>> set_env_data('RUNNER_OS', 'Linux')
     >>> assert is_ci_runner_os_linux() == True
+    >>> clear_all_caches()
 
     >>> # TRAVIS_OS_NAME == 'windows'
     >>> set_env_data('RUNNER_OS', 'Windows')
     >>> assert is_ci_runner_os_linux() == False
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> set_env_data('RUNNER_OS', save_gha_os_name)
-
+    >>> clear_all_caches()
     """
     return get_env_data("RUNNER_OS").lower() == "linux"
 
 
+@lru_cache(maxsize=None)
 def is_ci_runner_os_macos() -> bool:
     """
     if the ci runner os is macos
@@ -1041,23 +1127,26 @@ def is_ci_runner_os_macos() -> bool:
 
     >>> # Setup
     >>> save_gha_os_name = get_env_data('RUNNER_OS')
+    >>> clear_all_caches()
 
     >>> # runner.os == 'linux'
     >>> set_env_data('RUNNER_OS', 'Linux')
     >>> assert is_ci_runner_os_macos() == False
+    >>> clear_all_caches()
 
     >>> # TRAVIS_OS_NAME == 'windows'
     >>> set_env_data('RUNNER_OS', 'macOS')
     >>> assert is_ci_runner_os_macos() == True
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> set_env_data('RUNNER_OS', save_gha_os_name)
-
-
+    >>> clear_all_caches()
     """
     return get_env_data("RUNNER_OS").lower() == "macos"
 
 
+@lru_cache(maxsize=None)
 def do_deploy() -> bool:
     """
     if we should deploy
@@ -1077,28 +1166,34 @@ def do_deploy() -> bool:
     >>> # Setup
     >>> save_github_event_name = get_env_data('GITHUB_EVENT_NAME')
     >>> save_build = get_env_data('BUILD')
+    >>> clear_all_caches()
 
     >>> # no Tagged Commit
     >>> set_env_data('GITHUB_EVENT_NAME', 'push')
     >>> assert False == do_deploy()
+    >>> clear_all_caches()
 
     >>> # Tagged Commit, DEPLOY_SDIST, DEPLOY_WHEEL != True
     >>> set_env_data('GITHUB_EVENT_NAME', 'release')
     >>> set_env_data('BUILD', '')
     >>> assert False == do_deploy()
+    >>> clear_all_caches()
 
     >>> # Tagged Commit, DEPLOY_SDIST == True
     >>> set_env_data('GITHUB_EVENT_NAME', 'release')
     >>> set_env_data('BUILD', 'True')
     >>> assert True == do_deploy()
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> set_env_data('GITHUB_EVENT_NAME', save_github_event_name)
     >>> set_env_data('BUILD', save_build)
+    >>> clear_all_caches()
     """
     return do_build() and is_release()
 
 
+@lru_cache(maxsize=None)
 def is_release() -> bool:
     """
     Returns True, if this is a release (and then we deploy to pypi probably)
@@ -1106,18 +1201,21 @@ def is_release() -> bool:
     return get_env_data("GITHUB_EVENT_NAME") == "release"
 
 
+@lru_cache(maxsize=None)
 def get_env_data(env_variable: str) -> str:
     """
     >>> # Setup
     >>> save_mypy_path = get_env_data('MYPYPATH')
+    >>> clear_all_caches()
 
     >>> # Test
     >>> set_env_data('MYPYPATH', 'some_test')
     >>> assert get_env_data('MYPYPATH') == 'some_test'
+    >>> clear_all_caches()
 
     >>> # Teardown
     >>> set_env_data('MYPYPATH', save_mypy_path)
-
+    >>> clear_all_caches()
     """
     if env_variable in os.environ:
         env_data = os.environ[env_variable]
@@ -1130,13 +1228,48 @@ def set_env_data(env_variable: str, env_str: str) -> None:
     os.environ[env_variable] = env_str
 
 
+@lru_cache(maxsize=None)
 def is_github_actions_active() -> bool:
     """
     if we are on github actions environment
 
+    >>> # Setup
+    >>> clear_all_caches()
+
+    >>> # Test
     >>> assert is_github_actions_active() == is_github_actions_active()
+
+    >>> # Teardown
+    >>> clear_all_caches()
     """
     return bool(get_env_data("CI") and get_env_data("GITHUB_WORKFLOW") and get_env_data("GITHUB_RUN_ID"))
+
+
+def clear_all_caches():
+    is_github_actions_active.cache_clear()
+    get_env_data.cache_clear()
+    is_release.cache_clear()
+    do_deploy.cache_clear()
+    do_build.cache_clear()
+    do_build_docs.cache_clear()
+    do_build_test.cache_clear()
+    is_ci_runner_os_macos.cache_clear()
+    is_ci_runner_os_linux.cache_clear()
+    is_ci_runner_os_windows.cache_clear()
+    is_pypy3.cache_clear()
+    do_flake8_tests.cache_clear()
+    do_check_cli.cache_clear()
+    do_setup_py_test.cache_clear()
+    do_setup_py.cache_clear()
+    do_upload_code_climate.cache_clear()
+    do_upload_codecov.cache_clear()
+    do_coverage.cache_clear()
+    do_pytest.cache_clear()
+    do_mypy_tests.cache_clear()
+    get_github_username.cache_clear()
+    get_python_prefix.cache_clear()
+    get_pip_prefix.cache_clear()
+    get_branch.cache_clear()
 
 
 if __name__ == "__main__":
