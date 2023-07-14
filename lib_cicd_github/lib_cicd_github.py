@@ -325,6 +325,9 @@ def script(dry_run: bool = True) -> None:
         lib_log_utils.banner_spam("flake8 tests disabled on this build")
 
     if do_mypy_tests():
+        path_mypy_cache_dir = pathlib.Path(os.getcwd()) / '.mypy_cache'
+        if not path_mypy_cache_dir.exists():
+            path_mypy_cache_dir.mkdir()
         mypy_options = get_env_data("MYPY_OPTIONS")
         run(description="mypy tests", command=f"{python_prefix} -m mypy -p {package_name} {mypy_options}")
     else:
