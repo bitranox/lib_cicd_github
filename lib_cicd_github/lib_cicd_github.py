@@ -324,12 +324,8 @@ def script(dry_run: bool = True) -> None:
     else:
         lib_log_utils.banner_spam("flake8 tests disabled on this build")
 
-    if do_mypy_tests():
-        path_mypy_cache_dir = pathlib.Path(os.getcwd()) / '.mypy_cache'
-        if not path_mypy_cache_dir.exists():
-            path_mypy_cache_dir.mkdir()
-        mypy_options = get_env_data("MYPY_OPTIONS")
-        run(description="mypy tests", command=f"{python_prefix} -m mypy -p {package_name} {mypy_options}")
+    if is_run_mypy_tests():
+        run_mypy_tests(package_name=package_name, python_prefix=python_prefix)
     else:
         lib_log_utils.banner_spam("mypy tests disabled on this build")
 
@@ -571,7 +567,7 @@ def get_github_username() -> str:
     return get_env_data("GITHUB_REPOSITORY_OWNER")
 
 
-def do_mypy_tests() -> bool:
+def is_run_mypy_tests() -> bool:
     """
     if mypy should be run
 
@@ -587,11 +583,11 @@ def do_mypy_tests() -> bool:
 
     >>> # BUILD_TEST != 'True'
     >>> os.environ['MYPY_DO_TESTS'] = 'false'
-    >>> assert not do_mypy_tests()
+    >>> assert not is_run_mypy_tests()
 
     >>> # BUILD_TEST == 'true'
     >>> os.environ['MYPY_DO_TESTS'] = 'True'
-    >>> assert do_mypy_tests()
+    >>> assert is_run_mypy_tests()
 
     >>> # Teardown
     >>> if save_do_mypy is None:
@@ -1100,6 +1096,17 @@ def is_github_actions_active() -> bool:
     >>> assert is_github_actions_active() == is_github_actions_active()
     """
     return bool(get_env_data("CI") and get_env_data("GITHUB_WORKFLOW") and get_env_data("GITHUB_RUN_ID"))
+
+
+def run_mypy_tests(package_name: str, python_prefix: str) -> None:
+    crate_mypy_cache_directory()
+    mypy_options = get_env_data("MYPY_OPTIONS")
+    run(description="mypy tests", command=f"{python_prefix} -m mypy -p {package_name} {mypy_options}")
+
+
+def crate_mypy_cache_directory() -> None:
+    path_mypy_cache_dir = pathlib.Path.cwd() / '.mypy_cache'
+    path_mypy_cache_dir.mkdir(exist_ok=True)
 
 
 if __name__ == "__main__":
