@@ -245,14 +245,14 @@ def install(dry_run: bool = True) -> None:
         command=" ".join([pip_prefix, "install --upgrade setuptools"]),
     )
 
-    if do_setup_py_test():
+    if is_do_pip_install_test():
         run(
-            description="install package in editable(develop) mode",
+            description="pip install package in editable(develop) mode",
             command=" ".join([pip_prefix, "install --editable .[test]"]),
         )
-    elif do_setup_py():
+    elif is_do_pip_install():
         run(
-            description="install package",
+            description="pip install package",
             command=" ".join([pip_prefix, "install ."]),
         )
     else:
@@ -730,12 +730,16 @@ def do_upload_code_climate() -> bool:
     return get_env_data("DO_COVERAGE_UPLOAD_CODE_CLIMATE").lower() == "true"
 
 
-def do_setup_py() -> bool:
-    return get_env_data("DO_SETUP_INSTALL").lower() == "true"
+def is_do_pip_install() -> bool:
+    # "DO_SETUP_INSTALL" is deprecated and will be replaced with "DO_PIP_INSTALL"
+    do_pip_install = get_env_data("DO_SETUP_INSTALL").lower() == "true" or get_env_data("DO_PIP_INSTALL").lower() == "true"
+    return do_pip_install
 
 
-def do_setup_py_test() -> bool:
-    return get_env_data("DO_SETUP_INSTALL_TEST").lower() == "true"
+def is_do_pip_install_test() -> bool:
+    # "DO_SETUP_INSTALL_TEST" is deprecated and will be replaced with "DO_PIP_INSTALL_TEST"
+    do_pip_install_test = get_env_data("DO_SETUP_INSTALL_TEST").lower() == "true" or get_env_data("DO_PIP_INSTALL_TEST").lower() == "true"
+    return do_pip_install_test
 
 
 def do_check_cli() -> bool:
