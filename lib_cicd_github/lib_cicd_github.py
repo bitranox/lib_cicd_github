@@ -340,8 +340,11 @@ def script(dry_run: bool = True) -> None:
         lib_log_utils.banner_spam("pytest disabled on this build")
 
     if do_check_cli():
-        cli_command = get_env_data("CLI_COMMAND")
-        run(description="check CLI command", command=f"{command_prefix} {cli_command} --version")
+        cli_command = get_env_data("CLI_COMMAND").strip()
+        if cli_command:
+            run(description="check CLI command", command=f"{command_prefix} {cli_command} --version")
+        else:
+            lib_log_utils.banner_spam("check CLI command is disabled on this build")
 
     if do_build_docs():
         rst_include_source = os.getenv("RST_INCLUDE_SOURCE", "")
