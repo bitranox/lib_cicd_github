@@ -5,6 +5,11 @@ Changelog
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
 
+v1.0.2b
+---------
+    2022-07-14:
+    - create mypy cache dir '.mypy_cache'
+
 v1.0.1.2
 ---------
 2022-06-02: update to github actions checkout@v3 and setup-python@v3
