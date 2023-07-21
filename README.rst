@@ -2,17 +2,19 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.1.2 as of 2022-06-02 see `Changelog`_
+Version v1.0.2 as of 2023-07-21 see `Changelog`_
 
-|build_badge| |license| |jupyter| |pypi| |pypi-downloads| |black|
-
-|codecov| |better_code| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
+|build_badge| |codeql| |license| |jupyter| |pypi|
+|pypi-downloads| |black| |codecov| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
 
 
 
 .. |build_badge| image:: https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml/badge.svg
    :target: https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml
 
+
+.. |codeql| image:: https://github.com/bitranox/lib_cicd_github/actions/workflows/codeql-analysis.yml/badge.svg?event=push
+   :target: https://github.com//bitranox/lib_cicd_github/actions/workflows/codeql-analysis.yml
 
 .. |license| image:: https://img.shields.io/github/license/webcomics/pywine.svg
    :target: http://en.wikipedia.org/wiki/MIT_License
@@ -27,9 +29,6 @@ Version v1.0.1.2 as of 2022-06-02 see `Changelog`_
 .. |codecov| image:: https://img.shields.io/codecov/c/github/bitranox/lib_cicd_github
    :target: https://codecov.io/gh/bitranox/lib_cicd_github
 
-.. |better_code| image:: https://bettercodehub.com/edge/badge/bitranox/lib_cicd_github?branch=master
-   :target: https://bettercodehub.com/results/bitranox/lib_cicd_github
-
 .. |cc_maintain| image:: https://img.shields.io/codeclimate/maintainability-percentage/bitranox/lib_cicd_github?label=CC%20maintainability
    :target: https://codeclimate.com/github/bitranox/lib_cicd_github/maintainability
    :alt: Maintainability
@@ -42,7 +41,7 @@ Version v1.0.1.2 as of 2022-06-02 see `Changelog`_
    :target: https://codeclimate.com/github/bitranox/lib_cicd_github/test_coverage
    :alt: Code Coverage
 
-.. |snyk| image:: https://img.shields.io/snyk/vulnerabilities/github/bitranox/lib_cicd_github
+.. |snyk| image:: https://snyk.io/test/github/bitranox/lib_cicd_github/badge.svg
    :target: https://snyk.io/test/github/bitranox/lib_cicd_github
 
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -59,14 +58,14 @@ small utils for github actions:
 
 ----
 
-automated tests, Travis Matrix, Documentation, Badges, etc. are managed with `PizzaCutter <https://github
+automated tests, Github Actions, Documentation, Badges, etc. are managed with `PizzaCutter <https://github
 .com/bitranox/PizzaCutter>`_ (cookiecutter on steroids)
 
-Python version required: 3.6.0 or newer
+Python version required: 3.8.0 or newer
 
-tested on recent linux with python 3.6, 3.7, 3.8, 3.9, 3.10, pypy-3.8 - architectures: amd64
+tested on recent linux with python 3.8, 3.9, 3.10, 3.11, 3.12-dev, pypy-3.9, pypy-3.10 - architectures: amd64
 
-`100% code coverage <https://codecov.io/gh/bitranox/lib_cicd_github>`_, flake8 style checking ,mypy static type checking ,tested under `Linux, macOS, Windows <https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml>`_, automatic daily builds and monitoring
+`100% code coverage <https://codeclimate.com/github/bitranox/lib_cicd_github/test_coverage>`_, flake8 style checking ,mypy static type checking ,tested under `Linux, macOS, Windows <https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml>`_, automatic daily builds and monitoring
 
 ----
 
@@ -129,6 +128,7 @@ python methods:
         Examples
         --------
 
+        >>> # Test
         >>> if is_github_actions_active():
         ...     install(dry_run=True)
 
@@ -184,6 +184,7 @@ python methods:
 
         Examples
         --------
+        >>> # test
         >>> script()
 
         """
@@ -216,6 +217,7 @@ python methods:
 
         Examples
         --------
+        >>> # test
         >>> after_success()
 
         """
@@ -235,8 +237,6 @@ python methods:
             from environment, the command prefix like 'wine' or ''
         PYPI_PASSWORD
             from environment, passed as secure, encrypted variable to environment
-        TRAVIS_TAG
-            from environment, needs to be set
         DEPLOY_SDIST, DEPLOY_WHEEL
             from environment, one of it needs to be true
         dry_run
@@ -245,6 +245,7 @@ python methods:
 
         Examples
         --------
+        >>> # test
         >>> deploy()
 
         """
@@ -440,7 +441,7 @@ python methods:
             # MYPY tests
             MYPY_DO_TESTS: "True"
             MYPY_OPTIONS: "--follow-imports=normal --ignore-missing-imports --implicit-reexport --install-types --no-warn-unused-ignores --non-interactive --strict"
-            MYPYPATH: "./lib_cicd_github/3rd_party_stubs"
+            MYPYPATH: "./.3rd_party_stubs"
 
             # coverage
             DO_COVERAGE: "True"
@@ -465,15 +466,15 @@ python methods:
           matrix:
             include:
               # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-software
+              # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#available-versions-of-python-and-pypy
 
               - os: windows-latest
-                python-version: "3.10"
+                python-version: "3.11"
                 env:
                   cEXPORT: "SET"
                   BUILD_DOCS: "False"
-                  DEPLOY_SDIST: "False"
-                  DEPLOY_WHEEL: "False"
-                  DEPLOY_TEST: "False"
+                  BUILD: "False"
+                  BUILD_TEST: "False"
                   MYPY_DO_TESTS: "True"
                   # Setup tests
                   DO_SETUP_INSTALL: "False"
@@ -483,87 +484,91 @@ python methods:
 
 
               - os: ubuntu-latest
-                python-version: "3.6"
-                env:
-                  BUILD_DOCS: "False"
-                  DEPLOY_SDIST: "True"
-                  DEPLOY_WHEEL: "True"
-                  DEPLOY_TEST: "True"
-                  MYPY_DO_TESTS: "True"
-                  DO_SETUP_INSTALL: "True"
-                  DO_SETUP_INSTALL_TEST: "False"
-                  DO_CLI_TEST: "True"
-
-              - os: ubuntu-latest
-                python-version: "3.7"
-                env:
-                  BUILD_DOCS: "False"
-                  DEPLOY_SDIST: "True"
-                  DEPLOY_WHEEL: "True"
-                  DEPLOY_TEST: "True"
-                  MYPY_DO_TESTS: "True"
-                  DO_SETUP_INSTALL: "True"
-                  DO_SETUP_INSTALL_TEST: "False"
-                  DO_CLI_TEST: "True"
-
-              - os: ubuntu-latest
                 python-version: "3.8"
                 env:
                   BUILD_DOCS: "False"
-                  DEPLOY_SDIST: "True"
-                  DEPLOY_WHEEL: "True"
-                  DEPLOY_TEST: "True"
-                  MYPY_DO_TESTS: "True"
-                  DO_SETUP_INSTALL: "True"
-                  DO_SETUP_INSTALL_TEST: "False"
-                  DO_CLI_TEST: "True"
-
-              - os: ubuntu-latest
-                python-version: "3.9"
-                env:
-                  BUILD_DOCS: "False"
-                  DEPLOY_SDIST: "True"
-                  DEPLOY_WHEEL: "True"
-                  DEPLOY_TEST: "True"
-                  MYPY_DO_TESTS: "True"
-                  DO_SETUP_INSTALL: "True"
-                  DO_SETUP_INSTALL_TEST: "False"
-                  DO_CLI_TEST: "True"
-
-              - os: ubuntu-latest
-                python-version: "3.10"
-                env:
-                  BUILD_DOCS: "True"
-                  DEPLOY_SDIST: "True"
-                  DEPLOY_WHEEL: "True"
-                  DEPLOY_TEST: "True"
+                  BUILD: "True"
+                  BUILD_TEST: "True"
                   MYPY_DO_TESTS: "True"
                   DO_SETUP_INSTALL: "True"
                   DO_SETUP_INSTALL_TEST: "True"
                   DO_CLI_TEST: "True"
 
               - os: ubuntu-latest
-                python-version: "pypy-3.8"
+                python-version: "3.9"
                 env:
                   BUILD_DOCS: "False"
-                  DEPLOY_SDIST: "True"
-                  DEPLOY_WHEEL: "True"
-                  DEPLOY_TEST: "True"
-                  MYPY_DO_TESTS: "False"
+                  BUILD: "True"
+                  BUILD_TEST: "True"
+                  MYPY_DO_TESTS: "True"
                   DO_SETUP_INSTALL: "True"
-                  DO_SETUP_INSTALL_TEST: "False"
+                  DO_SETUP_INSTALL_TEST: "True"
+                  DO_CLI_TEST: "True"
+
+              - os: ubuntu-latest
+                python-version: "3.10"
+                env:
+                  BUILD_DOCS: "False"
+                  BUILD: "True"
+                  BUILD_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "True"
+                  DO_CLI_TEST: "True"
+
+              - os: ubuntu-latest
+                python-version: "3.11"
+                env:
+                  BUILD_DOCS: "True"
+                  BUILD: "True"
+                  BUILD_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "True"
+                  DO_CLI_TEST: "True"
+
+              - os: ubuntu-latest
+                python-version: "3.12-dev"
+                env:
+                  BUILD_DOCS: "True"
+                  BUILD: "True"
+                  BUILD_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "True"
+                  DO_CLI_TEST: "True"
+
+              - os: ubuntu-latest
+                python-version: "pypy-3.9"
+                env:
+                  BUILD_DOCS: "False"
+                  BUILD: "True"
+                  BUILD_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "True"
+                  DO_CLI_TEST: "True"
+
+              - os: ubuntu-latest
+                python-version: "pypy-3.10"
+                env:
+                  BUILD_DOCS: "False"
+                  BUILD: "True"
+                  BUILD_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "True"
                   DO_CLI_TEST: "True"
 
               - os: macos-latest
-                python-version: "3.10"
+                python-version: "3.11"
                 env:
                   cPREFIX: ""               # prefix before commands - used for wine, there the prefix is "wine"
                   cPYTHON: "python3"        # command to launch python interpreter (it's different on macOS, there we need python3)
                   cPIP: "python3 -m pip"    # command to launch pip (it's different on macOS, there we need pip3)
                   BUILD_DOCS: "False"
-                  DEPLOY_SDIST: "True"
-                  DEPLOY_WHEEL: "True"
-                  DEPLOY_TEST: "True"
+                  BUILD: "True"
+                  BUILD_TEST: "True"
                   MYPY_DO_TESTS: "True"
                   # Setup tests
                   DO_SETUP_INSTALL: "True"
@@ -579,7 +584,8 @@ python methods:
         - uses: actions/checkout@v3
 
         - name: Setting up Python ${{ matrix.python-version }}
-          uses: actions/setup-python@v3
+          # see: https://github.com/actions/setup-python
+          uses: actions/setup-python@v4
           with:
             python-version: ${{ matrix.python-version }}
 
@@ -688,6 +694,13 @@ Installation and Upgrade
 
     python -m pip install --upgrade lib_cicd_github
 
+
+- to install the latest release from PyPi via pip, including test dependencies:
+
+.. code-block::
+
+    python -m pip install --upgrade lib_cicd_github[test]
+
 - to install the latest version from github via pip:
 
 
@@ -711,14 +724,14 @@ Installation and Upgrade
     python -m pip install --upgrade -r /<path>/requirements.txt
 
 
-- to install the latest development version from source code:
+- to install the latest development version, including test dependencies from source code:
 
 .. code-block::
 
     # cd ~
     $ git clone https://github.com/bitranox/lib_cicd_github.git
     $ cd lib_cicd_github
-    python setup.py install
+    python -m pip install -e .[test]
 
 - via makefile:
   makefiles are a very convenient way to install. Here we can do much more,
@@ -779,6 +792,28 @@ Changelog
 - new MAJOR version for incompatible API changes,
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
+
+v1.0.2
+--------
+2023-07-21:
+    - create mypy cache dir '.mypy_cache'
+    - require minimum python 3.8
+    - remove python 3.7 tests
+    - introduce PEP517 packaging standard
+    - introduce pyproject.toml build-system
+    - remove mypy.ini
+    - remove pytest.ini
+    - remove setup.cfg
+    - remove setup.py
+    - remove .bettercodehub.yml
+    - remove .travis.yml
+    - update black config
+    - clean ./tests/test_cli.py
+    - add codeql badge
+    - move 3rd_party_stubs outside the src directory to ``./.3rd_party_stubs``
+    - add pypy 3.10 tests
+    - add python 3.12-dev tests
+
 
 v1.0.1.2
 ---------

@@ -21,19 +21,17 @@ def call_cli_command(commandline_args: str = "") -> bool:
 
 
 def test_cli_commands() -> None:
-    # due to a bug in python 3.8.1 with setup.py test on travis we need to cancel the click tests there !
-    if sys.version_info < (3, 8, 1) or sys.version_info >= (3, 8, 2):
-        assert not call_cli_command("--unknown_option")
-        assert call_cli_command("--version")
-        assert call_cli_command("-h")
-        assert call_cli_command("info")
-        assert call_cli_command("--traceback info")
-        assert call_cli_command("get_branch")
+    assert not call_cli_command("--unknown_option")
+    assert call_cli_command("--version")
+    assert call_cli_command("-h")
+    assert call_cli_command("info")
+    assert call_cli_command("--traceback info")
+    assert call_cli_command("get_branch")
 
-        assert call_cli_command('run test "echo test"')
-        assert not call_cli_command('run description "unknown command" --retry=3 --sleep=0')
+    assert call_cli_command('run test "echo test"')
+    assert not call_cli_command('run description "unknown command" --retry=3 --sleep=0')
 
-        assert call_cli_command("install --dry-run")
-        assert call_cli_command("script --dry-run")
-        assert call_cli_command("after_success --dry-run")
-        assert call_cli_command("deploy --dry-run")
+    assert call_cli_command("install --dry-run")
+    assert call_cli_command("script --dry-run")
+    assert call_cli_command("after_success --dry-run")
+    assert call_cli_command("deploy --dry-run")
