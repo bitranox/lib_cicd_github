@@ -140,7 +140,7 @@ python methods:
 
     def script(dry_run: bool = True) -> None:
         """
-        travis jobs to run in travis.yml section "script":
+        jobs to run in CICD section "script":
         - run setup.py test
         - run pip with install option test
         - run pip standard install
@@ -164,7 +164,7 @@ python methods:
         cPYTHON
             from environment, the command to launch python, like 'python' or 'python3' on MacOS
         CLI_COMMAND
-            from environment, must be set in travis - the CLI command to test with option --version
+            from environment, must be set in CICD configuration file - the CLI command to test with option --version
         MYPY_STRICT
             from environment, if pytest with mypy --strict should run
         PACKAGE_NAME
@@ -195,7 +195,7 @@ python methods:
 
     def after_success(dry_run: bool = True) -> None:
         """
-        travis jobs to run in travis.yml section "after_success":
+        jobs to run in CICD "after_success":
             - coverage report
             - codecov
             - codeclimate report upload
@@ -208,9 +208,7 @@ python methods:
         cPIP
             from environment, the command to launch pip, like "python -m pip"
         CC_TEST_REPORTER_ID
-            from environment, must be set in travis
-        TRAVIS_TEST_RESULT
-            from environment, this is set by TRAVIS automatically
+            from environment, must be set in CICD configuration file
         dry_run
             if set, this returns immediately - for CLI tests
 

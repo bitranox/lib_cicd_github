@@ -90,7 +90,7 @@ def run(
             break
         except Exception as exc:
             tries = tries - 1
-            # try 3 times, because sometimes connection or other errors on travis
+            # try 3 times, because sometimes connection or other errors on the CICD Cloud Instance
             if tries:
                 lib_log_utils.banner_spam(
                     f"Retry in {sleep} seconds: {description}\nCommand: {command_description}",
@@ -262,7 +262,7 @@ def install(dry_run: bool = True) -> None:
 # script{{{
 def script(dry_run: bool = True) -> None:
     """
-    travis jobs to run in travis.yml section "script":
+    jobs to run in CICD section "script":
     - run setup.py test
     - run pip with install option test
     - run pip standard install
@@ -286,7 +286,7 @@ def script(dry_run: bool = True) -> None:
     cPYTHON
         from environment, the command to launch python, like 'python' or 'python3' on MacOS
     CLI_COMMAND
-        from environment, must be set in travis - the CLI command to test with option --version
+        from environment, must be set in CICD configuration file - the CLI command to test with option --version
     MYPY_STRICT
         from environment, if pytest with mypy --strict should run
     PACKAGE_NAME
@@ -382,7 +382,7 @@ def script(dry_run: bool = True) -> None:
 # after_success{{{
 def after_success(dry_run: bool = True) -> None:
     """
-    travis jobs to run in travis.yml section "after_success":
+    jobs to run in CICD "after_success":
         - coverage report
         - codecov
         - codeclimate report upload
@@ -395,9 +395,7 @@ def after_success(dry_run: bool = True) -> None:
     cPIP
         from environment, the command to launch pip, like "python -m pip"
     CC_TEST_REPORTER_ID
-        from environment, must be set in travis
-    TRAVIS_TEST_RESULT
-        from environment, this is set by TRAVIS automatically
+        from environment, must be set in CICD configuration file
     dry_run
         if set, this returns immediately - for CLI tests
 
@@ -955,7 +953,7 @@ def is_ci_runner_os_windows() -> bool:
     >>> set_env_data('RUNNER_OS', 'Linux')
     >>> assert is_ci_runner_os_windows() == False
 
-    >>> # TRAVIS_OS_NAME == 'windows'
+    >>> # RUNNER_OS == 'windows'
     >>> set_env_data('RUNNER_OS', 'Windows')
     >>> assert is_ci_runner_os_windows() == True
 
@@ -983,7 +981,7 @@ def is_ci_runner_os_linux() -> bool:
     >>> set_env_data('RUNNER_OS', 'Linux')
     >>> assert is_ci_runner_os_linux() == True
 
-    >>> # TRAVIS_OS_NAME == 'windows'
+    >>> # RUNNER_OS == 'windows'
     >>> set_env_data('RUNNER_OS', 'Windows')
     >>> assert is_ci_runner_os_linux() == False
 
@@ -1011,7 +1009,7 @@ def is_ci_runner_os_macos() -> bool:
     >>> set_env_data('RUNNER_OS', 'Linux')
     >>> assert is_ci_runner_os_macos() == False
 
-    >>> # TRAVIS_OS_NAME == 'windows'
+    >>> # RUNNER_OS == 'macOS'
     >>> set_env_data('RUNNER_OS', 'macOS')
     >>> assert is_ci_runner_os_macos() == True
 
