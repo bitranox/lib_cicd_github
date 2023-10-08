@@ -20,7 +20,10 @@
 .. |pypi| image:: https://img.shields.io/pypi/status/lib-cicd-github?label=PyPI%20Package
    :target: https://badge.fury.io/py/lib_cicd_github
 
-.. |codecov| image:: https://img.shields.io/codecov/c/github/bitranox/lib_cicd_github
+.. badge until 2023-10-08:
+.. https://img.shields.io/codecov/c/github/bitranox/lib_cicd_github
+.. badge from 2023-10-08:
+.. |codecov| image:: https://codecov.io/gh/bitranox/lib_cicd_github/graph/badge.svg
    :target: https://codecov.io/gh/bitranox/lib_cicd_github
 
 .. |cc_maintain| image:: https://img.shields.io/codeclimate/maintainability-percentage/bitranox/lib_cicd_github?label=CC%20maintainability

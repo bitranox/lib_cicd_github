@@ -387,6 +387,8 @@ def after_success(dry_run: bool = True) -> None:
         - codecov
         - codeclimate report upload
 
+    it will not run on dry_run or on scheduled event - we dont need to upload
+    coverage AGAIN on scheduled run.
 
     Parameter
     ---------
@@ -398,6 +400,7 @@ def after_success(dry_run: bool = True) -> None:
         from environment, must be set in CICD configuration file
     dry_run
         if set, this returns immediately - for CLI tests
+
 
 
     Examples
@@ -418,7 +421,11 @@ def after_success(dry_run: bool = True) -> None:
         run(description="coverage report", command=f"{command_prefix} coverage report")
 
         if do_upload_codecov():
-            run(description="coverage upload to codecov", command=f"{command_prefix} codecov")
+            if is_scheduled():
+                lib_log_utils.banner_spam("this is a scheduled build, therefore we dont upload codecov coverage AGAIN , because of codecov error 'Too many "
+                                          "uploads to this commit.'")
+            else:
+                run(description="coverage upload to codecov", command=f"{command_prefix} codecov")
         else:
             lib_log_utils.banner_spam("codecov upload disabled")
 
@@ -553,6 +560,19 @@ def get_python_prefix() -> str:
     c_parts.append(os.getenv("cPYTHON", ""))
     python_prefix = " ".join(c_parts).strip()
     return python_prefix
+
+
+def get_github_eventname() -> str:
+    """
+    see: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+    get the github eventname  like:
+    schedule, push, pull_request, release
+
+    >>> # test
+    >>> assert get_github_eventname() == get_env_data("GITHUB_EVENT_NAME")
+    """
+    github_event_name = get_env_data("GITHUB_EVENT_NAME")
+    return github_event_name
 
 
 def get_github_username() -> str:
@@ -1064,7 +1084,14 @@ def is_release() -> bool:
     """
     Returns True, if this is a release (and then we deploy to pypi probably)
     """
-    return get_env_data("GITHUB_EVENT_NAME") == "release"
+    return get_github_eventname() == "release"
+
+
+def is_scheduled() -> bool:
+    """
+    Returns True, if this is a scheduled run
+    """
+    return get_github_eventname() == "scheduled"
 
 
 def get_env_data(env_variable: str) -> str:

@@ -5,6 +5,12 @@ Changelog
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
 
+v1.0.3
+--------
+2023-10-08:
+    - do not upload codecov on scheduled builds, because of error
+      'Too many uploads to this commit.' when upload codecov again and again.
+
 v1.0.2
 --------
 2023-07-21:
@@ -25,7 +31,6 @@ v1.0.2
     - move 3rd_party_stubs outside the src directory to ``./.3rd_party_stubs``
     - add pypy 3.10 tests
     - add python 3.12-dev tests
-
 
 v1.0.1.2
 ---------

@@ -2,7 +2,7 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.2 as of 2023-07-21 see `Changelog`_
+Version v1.0.3 as of 2023-10-08 see `Changelog`_
 
 |build_badge| |codeql| |license| |jupyter| |pypi|
 |pypi-downloads| |black| |codecov| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
@@ -26,7 +26,10 @@ Version v1.0.2 as of 2023-07-21 see `Changelog`_
 .. |pypi| image:: https://img.shields.io/pypi/status/lib-cicd-github?label=PyPI%20Package
    :target: https://badge.fury.io/py/lib_cicd_github
 
-.. |codecov| image:: https://img.shields.io/codecov/c/github/bitranox/lib_cicd_github
+.. badge until 2023-10-08:
+.. https://img.shields.io/codecov/c/github/bitranox/lib_cicd_github
+.. badge from 2023-10-08:
+.. |codecov| image:: https://codecov.io/gh/bitranox/lib_cicd_github/graph/badge.svg
    :target: https://codecov.io/gh/bitranox/lib_cicd_github
 
 .. |cc_maintain| image:: https://img.shields.io/codeclimate/maintainability-percentage/bitranox/lib_cicd_github?label=CC%20maintainability
@@ -200,6 +203,8 @@ python methods:
             - codecov
             - codeclimate report upload
 
+        it will not run on dry_run or on scheduled event - we dont need to upload
+        coverage AGAIN on scheduled run.
 
         Parameter
         ---------
@@ -211,6 +216,7 @@ python methods:
             from environment, must be set in CICD configuration file
         dry_run
             if set, this returns immediately - for CLI tests
+
 
 
         Examples
@@ -791,6 +797,12 @@ Changelog
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
 
+v1.0.3
+--------
+2023-10-08:
+    - do not upload codecov on scheduled builds, because of error
+      'Too many uploads to this commit.' when upload codecov again and again.
+
 v1.0.2
 --------
 2023-07-21:
@@ -811,7 +823,6 @@ v1.0.2
     - move 3rd_party_stubs outside the src directory to ``./.3rd_party_stubs``
     - add pypy 3.10 tests
     - add python 3.12-dev tests
-
 
 v1.0.1.2
 ---------
