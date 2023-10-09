@@ -1091,7 +1091,7 @@ def is_scheduled() -> bool:
     """
     Returns True, if this is a scheduled run
     """
-    return get_github_eventname() == "scheduled"
+    return get_github_eventname() == "schedule"
 
 
 def get_env_data(env_variable: str) -> str:
