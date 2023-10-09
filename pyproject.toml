@@ -32,7 +32,7 @@ dependencies = [
     "lib_log_utils",
     "rst_include",
 ]
-version = "v1.0.4"
+version = "v1.0.5"
 # seems to be not allowed anymore
 # zip-save = false
 

@@ -2,7 +2,7 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.4 as of 2023-10-09 see `Changelog`_
+Version v1.0.5 as of 2023-10-09 see `Changelog`_
 
 |build_badge| |codeql| |license| |jupyter| |pypi|
 |pypi-downloads| |black| |codecov| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
@@ -239,8 +239,8 @@ python methods:
         ---------
         cPREFIX
             from environment, the command prefix like 'wine' or ''
-        PYPI_PASSWORD
-            from environment, passed as secure, encrypted variable to environment
+        GLOBAL_PYPI_UPLOAD_API_TOKEN
+            from environment, passed as secure, encrypted variable to organisation environment
         DEPLOY_SDIST, DEPLOY_WHEEL
             from environment, one of it needs to be true
         dry_run
@@ -796,6 +796,11 @@ Changelog
 - new MAJOR version for incompatible API changes,
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
+
+v1.0.5
+--------
+2023-10-09:
+    - implement PyPI Upload API Token
 
 v1.0.4
 --------

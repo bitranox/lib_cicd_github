@@ -481,8 +481,8 @@ def deploy(dry_run: bool = True) -> None:
     ---------
     cPREFIX
         from environment, the command prefix like 'wine' or ''
-    PYPI_PASSWORD
-        from environment, passed as secure, encrypted variable to environment
+    GLOBAL_PYPI_UPLOAD_API_TOKEN
+        from environment, passed as secure, encrypted variable to organisation environment
     DEPLOY_SDIST, DEPLOY_WHEEL
         from environment, one of it needs to be true
     dry_run
@@ -499,8 +499,8 @@ def deploy(dry_run: bool = True) -> None:
 
     if dry_run:
         return
-    pypi_password = get_env_data("PYPI_PASSWORD").strip()
-    if not pypi_password:
+    pypi_api_upload_token = get_env_data("GLOBAL_PYPI_UPLOAD_API_TOKEN").strip()
+    if not pypi_api_upload_token:
         lib_log_utils.banner_warning("can not deploy, because secret PYPI_PASSWORD is missing")
     elif do_deploy():
         if not dry_run:  # pragma: no cover
@@ -509,10 +509,8 @@ def deploy(dry_run: bool = True) -> None:
                 command=" ".join(
                     [
                         get_python_prefix(),
-                        "-m twine upload --repository-url https://upload.pypi.org/legacy/ -u",
-                        get_github_username(),
-                        "-p",
-                        pypi_password,
+                        "-m twine upload --repository-url https://upload.pypi.org/legacy/ -u __token__ -p",
+                        pypi_api_upload_token,
                         "--skip-existing",
                         "dist/*",
                     ]
