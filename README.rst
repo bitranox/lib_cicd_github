@@ -239,8 +239,8 @@ python methods:
         ---------
         cPREFIX
             from environment, the command prefix like 'wine' or ''
-        GLOBAL_PYPI_UPLOAD_API_TOKEN
-            from environment, passed as secure, encrypted variable to organisation environment
+        PYPI_UPLOAD_API_TOKEN
+            from environment, passed as secure, encrypted variable via the GitHub repository secrets
         DEPLOY_SDIST, DEPLOY_WHEEL
             from environment, one of it needs to be true
         dry_run

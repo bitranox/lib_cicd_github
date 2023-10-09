@@ -481,8 +481,8 @@ def deploy(dry_run: bool = True) -> None:
     ---------
     cPREFIX
         from environment, the command prefix like 'wine' or ''
-    GLOBAL_PYPI_UPLOAD_API_TOKEN
-        from environment, passed as secure, encrypted variable to organisation environment
+    PYPI_UPLOAD_API_TOKEN
+        from environment, passed as secure, encrypted variable via the GitHub repository secrets
     DEPLOY_SDIST, DEPLOY_WHEEL
         from environment, one of it needs to be true
     dry_run
@@ -499,9 +499,9 @@ def deploy(dry_run: bool = True) -> None:
 
     if dry_run:
         return
-    pypi_api_upload_token = get_env_data("GLOBAL_PYPI_UPLOAD_API_TOKEN").strip()
+    pypi_api_upload_token = get_env_data("PYPI_UPLOAD_API_TOKEN").strip()
     if not pypi_api_upload_token:
-        lib_log_utils.banner_warning("can not deploy, because secret PYPI_PASSWORD is missing")
+        lib_log_utils.banner_warning("can not deploy, because secret PYPI_UPLOAD_API_TOKEN is missing")
     elif do_deploy():
         if not dry_run:  # pragma: no cover
             run(
