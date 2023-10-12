@@ -5,6 +5,11 @@ Changelog
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
 
+v1.0.6
+--------
+2023-10-12:
+    - do not upload codecov to codeclimate on scheduled builds
+
 v1.0.5
 --------
 2023-10-09:

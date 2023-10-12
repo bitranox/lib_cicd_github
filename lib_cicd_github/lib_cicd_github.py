@@ -414,22 +414,40 @@ def after_success(dry_run: bool = True) -> None:
     if dry_run:
         return
 
-    command_prefix = get_env_data("cPREFIX")
-    cc_test_reporter_id = get_env_data("CC_TEST_REPORTER_ID").strip()
-
     if do_coverage():
-        run(description="coverage report", command=f"{command_prefix} coverage report")
+        coverage_report()
+        coverage_codecov()
+        coverage_codeclimate()
+    else:
+        lib_log_utils.banner_spam("coverage is disabled")
 
-        if do_upload_codecov():
-            if is_scheduled():
-                lib_log_utils.banner_spam("this is a scheduled build, therefore we dont upload codecov coverage AGAIN , because of codecov error 'Too many "
-                                          "uploads to this commit.'")
-            else:
-                run(description="coverage upload to codecov", command=f"{command_prefix} codecov")
+
+def coverage_report() -> None:
+    """ create coverage report """
+    command_prefix = get_env_data("cPREFIX")
+    run(description="coverage report", command=f"{command_prefix} coverage report")
+
+
+def coverage_codecov() -> None:
+    """ upload coverage to codecov, except on scheduled builds """
+    command_prefix = get_env_data("cPREFIX")
+    if do_upload_codecov():
+        if is_scheduled():
+            lib_log_utils.banner_spam("this is a scheduled build, therefore we dont upload codecov coverage AGAIN , because of codecov error 'Too many "
+                                      "uploads to this commit.'")
         else:
-            lib_log_utils.banner_spam("codecov upload disabled")
+            run(description="coverage upload to codecov", command=f"{command_prefix} codecov")
+    else:
+        lib_log_utils.banner_spam("codecov upload disabled")
 
-        if do_upload_code_climate() and cc_test_reporter_id:
+
+def coverage_codeclimate() -> None:
+    """ upload coverage to codeclimate, except on scheduled builds """
+    cc_test_reporter_id = get_env_data("CC_TEST_REPORTER_ID").strip()
+    if do_upload_code_climate() and cc_test_reporter_id:
+        if is_scheduled():
+            lib_log_utils.banner_spam("this is a scheduled build, therefore we dont upload test results to codeclimate")
+        else:
             if is_ci_runner_os_macos() or is_ci_runner_os_linux():
                 download_code_climate_test_reporter_on_linux_or_macos()
                 upload_code_climate_test_report_on_linux_or_macos()
@@ -437,8 +455,8 @@ def after_success(dry_run: bool = True) -> None:
                 lib_log_utils.banner_warning('Code Climate: no working "codeclimate-test-reporter" for Windows available, Nov. 2021')
             else:
                 lib_log_utils.banner_warning("Code Climate Coverage - unknown RUNNER_OS ")
-        else:
-            lib_log_utils.banner_spam("Code Climate Coverage is disabled, no CC_TEST_REPORTER_ID")
+    else:
+        lib_log_utils.banner_spam("Code Climate Coverage is disabled, or missing CC_TEST_REPORTER_ID")
 
 
 def download_code_climate_test_reporter_on_linux_or_macos() -> None:
