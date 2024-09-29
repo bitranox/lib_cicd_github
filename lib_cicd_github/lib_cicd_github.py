@@ -450,6 +450,7 @@ def warn_if_no_codecov_token() -> None:
         lib_log_utils.banner_spam(f"please pass the Repository Secret CODECOV_TOKEN for {slug} under "
                                   f"https://github.com/{slug}/settings/secrets/actions")
 
+
 def coverage_codeclimate() -> None:
     """ upload coverage to codeclimate, except on scheduled builds """
     cc_test_reporter_id = get_env_data("CC_TEST_REPORTER_ID").strip()
