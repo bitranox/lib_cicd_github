@@ -437,7 +437,8 @@ def coverage_codecov() -> None:
                                       "uploads to this commit.'")
         else:
             slug = get_env_data("GITHUB_REPOSITORY").strip()
-            run(description="coverage upload to codecov", command=f"{command_prefix} codecov --slug {slug}")
+            codecov_token = get_env_data("CODECOV_TOKEN").strip()
+            run(description="coverage upload to codecov", command=f"{command_prefix} codecov --slug {slug} --token {codecov_token}")
     else:
         lib_log_utils.banner_spam("codecov upload disabled")
 
