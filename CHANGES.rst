@@ -8,7 +8,7 @@ Changelog
 v1.0.7
 --------
 2024-09-29:
-    - codecov pass slug
+    - codecov pass slug and CODECOV_TOKEN
 
 v1.0.6
 --------

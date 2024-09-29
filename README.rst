@@ -2,7 +2,7 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.7 as of 2024-09-29 see `Changelog`_
+Version v1.0.7 as of 2024-09-30 see `Changelog`_
 
 |build_badge| |codeql| |license| |jupyter| |pypi|
 |pypi-downloads| |black| |codecov| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
@@ -460,8 +460,10 @@ python methods:
             RST_INCLUDE_SOURCE: "./.docs/README_template.rst"
             # the target file for rst_include (rebuild rst file includes)
             RST_INCLUDE_TARGET: "./README.rst"
-            # make Code Coverage Secret available in Environment
+            # make Code Climate Code Coverage Secret available in Environment
             CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+            # make CODECOV_TOKEN Secret available in Environment
+            CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
             # make PyPi API token available in Environment
             PYPI_UPLOAD_API_TOKEN: ${{ secrets.PYPI_UPLOAD_API_TOKEN }}
             # additional Environment Variables:
@@ -810,7 +812,7 @@ Changelog
 v1.0.7
 --------
 2024-09-29:
-    - codecov pass slug
+    - codecov pass slug and CODECOV_TOKEN
 
 v1.0.6
 --------

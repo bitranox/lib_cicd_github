@@ -436,12 +436,19 @@ def coverage_codecov() -> None:
             lib_log_utils.banner_spam("this is a scheduled build, therefore we dont upload codecov coverage AGAIN , because of codecov error 'Too many "
                                       "uploads to this commit.'")
         else:
-            # check for CODECOV_TOKEN
+            warn_if_no_codecov_token()
             slug = get_env_data("GITHUB_REPOSITORY").strip()
             run(description="coverage upload to codecov", command=f"{command_prefix} codecov --slug {slug}")
     else:
         lib_log_utils.banner_spam("codecov upload disabled")
 
+
+def warn_if_no_codecov_token() -> None:
+    slug = get_env_data("GITHUB_REPOSITORY").strip()
+    codecov_token = get_env_data("CODECOV_TOKEN").strip()
+    if not codecov_token:
+        lib_log_utils.banner_spam(f"please pass the Repository Secret CODECOV_TOKEN for {slug} under "
+                                  f"https://github.com/{slug}/settings/secrets/actions")
 
 def coverage_codeclimate() -> None:
     """ upload coverage to codeclimate, except on scheduled builds """
