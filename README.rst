@@ -2,7 +2,7 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.6 as of 2023-10-12 see `Changelog`_
+Version v1.0.7 as of 2024-09-29 see `Changelog`_
 
 |build_badge| |codeql| |license| |jupyter| |pypi|
 |pypi-downloads| |black| |codecov| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
@@ -66,7 +66,7 @@ automated tests, Github Actions, Documentation, Badges, etc. are managed with `P
 
 Python version required: 3.8.0 or newer
 
-tested on recent linux with python 3.8, 3.9, 3.10, 3.11, 3.12-dev, pypy-3.9, pypy-3.10 - architectures: amd64
+tested on recent linux with python 3.8, 3.9, 3.10, 3.11, 3.12, pypy-3.9, pypy-3.10, graalpy-24.1 - architectures: amd64
 
 `100% code coverage <https://codeclimate.com/github/bitranox/lib_cicd_github/test_coverage>`_, flake8 style checking ,mypy static type checking ,tested under `Linux, macOS, Windows <https://github.com/bitranox/lib_cicd_github/actions/workflows/python-package.yml>`_, automatic daily builds and monitoring
 
@@ -444,7 +444,7 @@ python methods:
 
             # MYPY tests
             MYPY_DO_TESTS: "True"
-            MYPY_OPTIONS: "--follow-imports=normal --ignore-missing-imports --implicit-reexport --install-types --no-warn-unused-ignores --non-interactive --strict"
+            MYPY_OPTIONS: "--follow-imports=normal --ignore-missing-imports --install-types --no-warn-unused-ignores --non-interactive --strict"
             MYPYPATH: "./.3rd_party_stubs"
 
             # coverage
@@ -464,7 +464,7 @@ python methods:
             CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
             # make PyPi API token available in Environment
             PYPI_UPLOAD_API_TOKEN: ${{ secrets.PYPI_UPLOAD_API_TOKEN }}
-
+            # additional Environment Variables:
 
         strategy:
           matrix:
@@ -473,7 +473,7 @@ python methods:
               # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#available-versions-of-python-and-pypy
 
               - os: windows-latest
-                python-version: "3.11"
+                python-version: "3.12"
                 env:
                   cEXPORT: "SET"
                   BUILD_DOCS: "False"
@@ -532,7 +532,7 @@ python methods:
                   DO_CLI_TEST: "True"
 
               - os: ubuntu-latest
-                python-version: "3.12-dev"
+                python-version: "3.12"
                 env:
                   BUILD_DOCS: "True"
                   BUILD: "True"
@@ -564,8 +564,19 @@ python methods:
                   DO_SETUP_INSTALL_TEST: "True"
                   DO_CLI_TEST: "True"
 
+              - os: ubuntu-latest
+                python-version: "graalpy-24.1"
+                env:
+                  BUILD_DOCS: "True"
+                  BUILD: "True"
+                  BUILD_TEST: "True"
+                  MYPY_DO_TESTS: "True"
+                  DO_SETUP_INSTALL: "True"
+                  DO_SETUP_INSTALL_TEST: "True"
+                  DO_CLI_TEST: "True"
+
               - os: macos-latest
-                python-version: "3.11"
+                python-version: "3.12"
                 env:
                   cPREFIX: ""               # prefix before commands - used for wine, there the prefix is "wine"
                   cPYTHON: "python3"        # command to launch python interpreter (it's different on macOS, there we need python3)
@@ -585,11 +596,11 @@ python methods:
 
         steps:
         # see : https://github.com/actions/checkout
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
 
         - name: Setting up Python ${{ matrix.python-version }}
           # see: https://github.com/actions/setup-python
-          uses: actions/setup-python@v4
+          uses: actions/setup-python@v5
           with:
             python-version: ${{ matrix.python-version }}
 
@@ -684,13 +695,12 @@ Usage from Commandline
 Installation and Upgrade
 ------------------------
 
-- Before You start, its highly recommended to update pip and setup tools:
+- Before You start, its highly recommended to update pip:
 
 
 .. code-block::
 
     python -m pip --upgrade pip
-    python -m pip --upgrade setuptools
 
 - to install the latest release from PyPi via pip (recommended):
 
@@ -796,6 +806,11 @@ Changelog
 - new MAJOR version for incompatible API changes,
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
+
+v1.0.7
+--------
+2024-09-29:
+    - codecov pass slug
 
 v1.0.6
 --------
