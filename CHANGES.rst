@@ -5,6 +5,11 @@ Changelog
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
 
+v1.0.7
+--------
+2024-09-29:
+    - codecov pass slug
+
 v1.0.6
 --------
 2023-10-12:

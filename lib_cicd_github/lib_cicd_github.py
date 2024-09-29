@@ -436,7 +436,8 @@ def coverage_codecov() -> None:
             lib_log_utils.banner_spam("this is a scheduled build, therefore we dont upload codecov coverage AGAIN , because of codecov error 'Too many "
                                       "uploads to this commit.'")
         else:
-            run(description="coverage upload to codecov", command=f"{command_prefix} codecov")
+            slug = get_env_data("github.repository").strip()
+            run(description="coverage upload to codecov", command=f"{command_prefix} codecov --slug {slug}")
     else:
         lib_log_utils.banner_spam("codecov upload disabled")
 
