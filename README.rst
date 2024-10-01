@@ -2,7 +2,7 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.8 as of 2024-10-01 see `Changelog`_
+Version v1.0.8 as of 2024-10-02 see `Changelog`_
 
 |build_badge| |codeql| |license| |jupyter| |pypi|
 |pypi-downloads| |black| |codecov| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
@@ -783,7 +783,6 @@ following modules will be automatically installed :
     lib_detect_testenv
     lib_log_utils
     rst_include
-    security_dependency_pinning
 
 Acknowledgements
 ----------------
