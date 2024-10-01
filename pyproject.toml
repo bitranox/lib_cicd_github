@@ -31,8 +31,9 @@ dependencies = [
     "lib_detect_testenv",
     "lib_log_utils",
     "rst_include",
+    "security_dependency_pinning",
 ]
-version = "v1.0.7"
+version = "v1.0.8"
 # seems to be not allowed anymore
 # zip-save = false
 

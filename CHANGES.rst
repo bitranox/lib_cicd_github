@@ -5,6 +5,13 @@ Changelog
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
 
+v1.0.8
+--------
+2024-10-01:
+    - add CODECOV_TOKEN hint if not present
+    - add graalpy tests
+    - add security_dependency_pinning
+
 v1.0.7
 --------
 2024-09-29:

@@ -449,6 +449,7 @@ def warn_if_no_codecov_token() -> None:
     if not codecov_token:
         lib_log_utils.banner_spam(f"please pass the Repository Secret CODECOV_TOKEN for {slug} under "
                                   f"https://github.com/{slug}/settings/secrets/actions")
+        lib_log_utils.banner_spam(f"get the CODECOV_TOKEN from https://app.codecov.io/gh/{slug}/config/general")
 
 
 def coverage_codeclimate() -> None:

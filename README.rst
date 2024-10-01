@@ -2,7 +2,7 @@ lib_cicd_github
 ===============
 
 
-Version v1.0.7 as of 2024-09-30 see `Changelog`_
+Version v1.0.8 as of 2024-10-01 see `Changelog`_
 
 |build_badge| |codeql| |license| |jupyter| |pypi|
 |pypi-downloads| |black| |codecov| |cc_maintain| |cc_issues| |cc_coverage| |snyk|
@@ -783,6 +783,7 @@ following modules will be automatically installed :
     lib_detect_testenv
     lib_log_utils
     rst_include
+    security_dependency_pinning
 
 Acknowledgements
 ----------------
@@ -808,6 +809,13 @@ Changelog
 - new MAJOR version for incompatible API changes,
 - new MINOR version for added functionality in a backwards compatible manner
 - new PATCH version for backwards compatible bug fixes
+
+v1.0.8
+--------
+2024-10-01:
+    - add CODECOV_TOKEN hint if not present
+    - add graalpy tests
+    - add security_dependency_pinning
 
 v1.0.7
 --------
