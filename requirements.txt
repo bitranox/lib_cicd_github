@@ -4,4 +4,3 @@ cli_exit_tools
 lib_detect_testenv
 lib_log_utils
 rst_include
-security_dependency_pinning
