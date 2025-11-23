@@ -598,7 +598,7 @@ python methods:
 
         steps:
         # see : https://github.com/actions/checkout
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
 
         - name: Setting up Python ${{ matrix.python-version }}
           # see: https://github.com/actions/setup-python
